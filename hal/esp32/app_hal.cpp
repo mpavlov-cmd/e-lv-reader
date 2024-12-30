@@ -8,7 +8,6 @@
 #include "Display_EPD_W21_spi.h"
 #include "Display_EPD_W21.h"
 #include "DisplayBuffer.h"
-// #include "Ap_29demo.h"
 
 static const uint32_t screenWidth = 480;
 static const uint32_t screenHeight = 800;
