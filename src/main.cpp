@@ -46,8 +46,9 @@ void setup()
 	lv_init();
 	hal_setup();
 
-	create_black_square(lv_scr_act());
+	// create_black_square(lv_scr_act());
 	// lv_demo_widgets();
+	lv_demo_music();
 }
 
 void loop()
@@ -59,7 +60,7 @@ void create_black_square(lv_obj_t * parent) {
     // Create a new object (basic rectangle object)
     lv_obj_t * rect = lv_obj_create(parent); 
     
-    lv_obj_set_size(rect, 24, 24);
+    lv_obj_set_size(rect, 56, 56);
     
     // Set the position of the rectangle (optional)
     lv_obj_set_pos(rect, 0, 0); // Adjust as needed

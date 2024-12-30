@@ -42,96 +42,105 @@ static void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
 // https://docs.lvgl.io/8/porting/display.html#examples
 void my_disp_flush(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char *px_map)
 {
-    if (chunkCounter > 0)
+    // if (chunkCounter >= 10) {
+    //     lv_display_flush_ready(lvDisplay); /* tell lvgl that flushing is done */
+    //     return;
+    // }
+
+    Serial.println("Flush start");
+
+    int width = lv_area_get_width(area);
+    int height = lv_area_get_height(area);
+
+    //  lv_draw_sw_rgb565_swap(px_map, width * height);
+
+    Serial.printf("Width and height: %ix%i\n", width, height);
+    Serial.printf("Start pos: %ix%i\n", area->x1, area->y1);
+
+    // Prepare a buffer to store the e-paper-compatible image data
+    unsigned char epd_buffer[(width * height) / 8];
+    memset(epd_buffer, 0XFF, sizeof(epd_buffer)); // Initialize to white
+    Serial.printf("Size of buffer: %i\n", sizeof(epd_buffer));
+
+    int32_t x, y;
+    for (y = area->y1; y <= area->y2; y++)
     {
-        lv_display_flush_ready(lvDisplay);
+        for (x = area->x1; x <= area->x2; x++)
+        {
+
+            // Calculate the index in the px_map buffer for column-first order
+            // int32_t index = (x - area->x1) * height + (y - area->y1);
+            int32_t index = (y - area->y1) * width + (x - area->x1);
+
+            // Retrieve the pixel color as uint16_t (assuming px_map is RGB565)
+            uint16_t color = ((uint16_t *)px_map)[index];
+
+            // Extract RGB components from the RGB565 color
+            uint8_t r = (color >> 11) & 0x1F; // Red component (5 bits)
+            uint8_t g = (color >> 5) & 0x3F;  // Green component (6 bits)
+            uint8_t b = color & 0x1F;         // Blue component (5 bits)
+
+            // Scale RGB components to 8 bits
+            r = (r * 255) / 31;
+            g = (g * 255) / 63;
+            b = (b * 255) / 31;
+
+            // Calculate luminance using the formula
+            uint8_t luminance = (uint8_t)(0.299 * r + 0.587 * g + 0.114 * b);
+            // Threshold to determine black or white
+            uint8_t pixel = (luminance > 128) ? 0 : 1; // 1 for black, 0 for white
+
+            // Calculate the position in the buffer for column-major drawing
+            int bufIdx = (x - area->x1) * height + (y - area->y1);
+            int bufIdxCmp = bufIdx / 8;     // Byte index
+            uint8_t bufIdxPos = bufIdx % 8; // Bit position within the byte
+
+            // Set the pixel in the buffer (monochrome format)
+            if (pixel)
+            {
+                epd_buffer[bufIdxCmp] &= ~(1 << (7 - bufIdxPos)); // Set black pixel
+            }
+            else
+            {
+                epd_buffer[bufIdxCmp] |= (1 << (7 - bufIdxPos)); // Set white pixel
+            }
+        }
     }
-    else
+
+    // Print for debug purposes
+    // if (chunkCounter < 4)
+    // {
+    //     for (int i = 0; i < (width * height + 7) / 8; i++)
+    //     {
+    //         Serial.printf("0x%02X, ", epd_buffer[i]);
+    //         if ((i + 1) % 8 == 0 && i != 0)
+    //         {
+    //             Serial.println();
+    //         }
+    //     }
+    // }
+
+    if (chunkCounter == 0)
     {
-
-        Serial.println("Flush");
-
-        int width = lv_area_get_width(area);
-        int height = lv_area_get_height(area);
-
-        lv_draw_sw_rgb565_swap(px_map, width * height);
-
-        Serial.printf("Width and height: %ix%i\n", width, height);
-        Serial.printf("Start pos: %ix%i\n", area->x1, area->y1);
-
-        // Prepare a buffer to store the e-paper-compatible image data
-
-        unsigned char epd_buffer[(width * height + 7) / 8];
-        memset(epd_buffer, 0XFF, sizeof(epd_buffer)); // Initialize to white
-        Serial.printf("Size of buffer: %i\n", sizeof(epd_buffer));
-
-        int32_t x, y;
-        for (y = area->y1; y <= area->y2; y++)
-        {
-            for (x = area->x1; x <= area->x2; x++)
-            {
-
-                // Calculate the index in the px_map buffer for column-first order
-                // int32_t index = (x - area->x1) * height + (y - area->y1);
-                int32_t index = (y - area->y1) * width + (x - area->x1);
-
-                // Retrieve the pixel color as uint16_t (assuming px_map is RGB565)
-                uint16_t color = ((uint16_t *)px_map)[index];
-
-                // Extract RGB components from the RGB565 color
-                uint8_t r = (color >> 11) & 0x1F; // Red component (5 bits)
-                uint8_t g = (color >> 5) & 0x3F;  // Green component (6 bits)
-                uint8_t b = color & 0x1F;         // Blue component (5 bits)
-
-                // Scale RGB components to 8 bits
-                r = (r * 255) / 31;
-                g = (g * 255) / 63;
-                b = (b * 255) / 31;
-
-                // Calculate luminance using the formula
-                uint8_t luminance = (uint8_t)(0.299 * r + 0.587 * g + 0.114 * b);
-                // Threshold to determine black or white
-                uint8_t pixel = (luminance > 136) ? 0 : 1; // 1 for black, 0 for white
-
-                // Calculate the position in the buffer for column-major drawing
-                int bufIdx = (x - area->x1) * height + (y - area->y1);
-                int bufIdxCmp = bufIdx / 8;     // Byte index
-                uint8_t bufIdxPos = bufIdx % 8; // Bit position within the byte
-
-                // Set the pixel in the buffer (monochrome format)
-                if (pixel)
-                {
-                    epd_buffer[bufIdxCmp] &= ~(1 << (7 - bufIdxPos)); // Set black pixel
-                }
-                else
-                {
-                    epd_buffer[bufIdxCmp] |= (1 << (7 - bufIdxPos)); // Set white pixel
-                }
-                // if (y < 32 && x < 32)
-                // {
-                //     Serial.printf("Index: %i; Pos: %i:%i; Color: %i\n", index, x, y, color);
-                // }
-            }
-        }
-
-        for (int i = 0; i < (width * height + 7) / 8; i++)
-        {
-            Serial.printf("0x%02X, ", epd_buffer[i]);
-            if ((i + 1) % 8 == 0 && i != 0)
-            {
-                Serial.println();
-            }
-        }
-
-        EPD_HW_Init();
+        // Serial.println("-------------------------- Initial Update --------------------------");
+        // EPD_HW_Init_Fast();
         EPD_SetRAMValue_BaseMap(gImageBlank);
-        EPD_Dis_Part(area->x1, area->y1, epd_buffer, width, height);
-        EPD_DeepSleep();
-
-        chunkCounter++;
-
-        lv_display_flush_ready(lvDisplay); /* tell lvgl that flushing is done */
     }
+
+
+    Serial.printf("------------ x1,y1: %ix%i width: %i, height: %i ------------\n", area->x1, area->y1, width, height);
+    EPD_Dis_Part_RAM(area->y1, area->x1, epd_buffer, width, height);
+    chunkCounter++;
+
+    // if (chunkCounter == 10) {
+    if (lv_disp_flush_is_last(lvDisplay)) {
+        chunkCounter = 0;
+        EPD_Part_Update();
+        EPD_DeepSleep();
+    }
+    
+    // Anyway tell lgvl that display is ready
+    lv_display_flush_ready(lvDisplay); /* tell lvgl that flushing is done */
 }
 
 /* Tick source, tell LVGL how much time (milliseconds) has passed */
@@ -155,10 +164,10 @@ void hal_setup(void)
     SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     SPI.begin();
 
-    EPD_HW_Init();           // Full screen refresh initialization.
-    EPD_WhiteScreen_White(); // Clear screen function.
-    EPD_DeepSleep();         // Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
-    delay(2000);             // Delay for 2s.
+    EPD_HW_Init_Fast();           // Full screen refresh initialization.
+    // EPD_WhiteScreen_White(); // Clear screen function.
+    // EPD_DeepSleep();         // Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
+    // delay(2000);             // Delay for 2s.
 
     /* Set the tick callback */
     lv_tick_set_cb(my_tick);

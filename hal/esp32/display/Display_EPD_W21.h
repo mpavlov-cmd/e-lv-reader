@@ -22,7 +22,13 @@ void EPD_Dis_Part_Time(unsigned int x_startA,unsigned int y_startA,const unsigne
                          unsigned int x_startD,unsigned int y_startD,const unsigned char * datasD,
                          unsigned int x_startE,unsigned int y_startE,const unsigned char * datasE,
                          unsigned int PART_COLUMN,unsigned int PART_LINE
-                        );                           
+                        );  
+
+
+void EPD_Dis_Part_RAM(unsigned int x_start,unsigned int y_start,const unsigned char * datas,unsigned int PART_COLUMN,unsigned int PART_LINE);
+void EPD_Part_Update(void);
+
+
 //Fast refresh display
 void EPD_HW_Init_Fast(void);
 void EPD_WhiteScreen_ALL_Fast(const unsigned char *datas);   
