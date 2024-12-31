@@ -9,16 +9,15 @@
 #include "Display_EPD_W21.h"
 #include "DisplayBuffer.h"
 
-static const uint32_t screenWidth = 480;
-static const uint32_t screenHeight = 800;
+#include "PinDefinitions.h"
+#include "SwithInputHandler.h"
 
-const unsigned int lvBufferSize = screenWidth * 32;
-uint8_t lvBuffer[lvBufferSize];
+// Function definitions
+static uint32_t arduino_tick(void);
+void epd_flush_cb(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char *px_map);
 
-static lv_display_t *lvDisplay;
-static lv_indev_t *lvInput;
-
-uint16_t chunkCounter = 0;
+void joystick_read(lv_indev_t * indev, lv_indev_data_t * data);
+void IRAM_ATTR isr();
 
 #if LV_USE_LOG != 0
 static void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
@@ -28,24 +27,86 @@ static void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
 }
 #endif
 
-/* Display flushing */
-// In Driver: 0X00 - Black; 0XFF: White (Every value contains 8 bits - )
+// Display variables
+static const uint32_t screenWidth  = 480;
+static const uint32_t screenHeight = 800;
+const unsigned int lvBufferSize = screenWidth * 32;
+uint8_t lvBuffer[lvBufferSize];
+
+static lv_display_t *lvDisplay;
+
+// TODO: Figure out why moving this counter causes MCU boot failure
+uint16_t chunkCounter = 0;
+
+
+// Input control
+SwithInputHandler inputHandler(BT_INPUT_2, BT_INPUT_1, BT_INPUT_0);
+volatile bool isrPending = false; 
+volatile unsigned long isrStartedAt = 0;
+
+static lv_indev_t *lvInput;
+
+void hal_setup(void)
+{
+
+    // Set display pins
+    pinMode(4, INPUT);   // BUSY
+    pinMode(16, OUTPUT); // RES
+    pinMode(17, OUTPUT); // DC
+    pinMode(SS, OUTPUT); // CS
+
+    // SPI
+    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+    SPI.begin();
+
+    EPD_HW_Init_Fast();           // Full screen refresh initialization.
+    // EPD_WhiteScreen_White(); // Clear screen function.
+    // EPD_DeepSleep();         // Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
+    // delay(2000);             // Delay for 2s.
+
+    /* Set the tick callback */
+    lv_tick_set_cb(arduino_tick);
+
+    /* Create LVGL display and set the flush function */
+    lvDisplay = lv_display_create(screenWidth, screenHeight);
+    lv_display_set_color_format(lvDisplay, LV_COLOR_FORMAT_RGB565);
+    lv_display_set_flush_cb(lvDisplay, epd_flush_cb);
+    lv_display_set_buffers(lvDisplay, lvBuffer, NULL, lvBufferSize, LV_DISPLAY_RENDER_MODE_PARTIAL);
+
+    // Set the input function
+    inputHandler.configure(isr, 100, 2500);
+
+    lvInput = lv_indev_create();
+    lv_indev_set_type(lvInput, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(lvInput, joystick_read);
+}
+
+void hal_loop(void)
+{
+    // Update the UI
+    lv_timer_handler(); 
+    delay(5);
+}
+
+// static lv_indev_t *lvInput;
+// Tick source, tell LVGL how much time (milliseconds) has passed
+static uint32_t arduino_tick(void)
+{
+    return millis();
+}
+
+// Display flushing 
+// In Driver: 0X00 - Black; 0XFF: White (Every value contains 8 bits)
 // In Driver: Each next char fills pixel: X0Y0, X0Y1, X0Y2, X0Y3
 
-// TODO: Make the damn thig work
 // Example of the working configuration
 // https://github.com/lvgl/lvgl_esp32_drivers/blob/master/lvgl_tft/uc8151d.c#L211
 // Initial example working now
 // https://github.com/lvgl/lv_platformio/blob/master/platformio.ini
 // Full documentation on proting
 // https://docs.lvgl.io/8/porting/display.html#examples
-void my_disp_flush(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char *px_map)
+void epd_flush_cb(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char *px_map)
 {
-    // if (chunkCounter >= 10) {
-    //     lv_display_flush_ready(lvDisplay); /* tell lvgl that flushing is done */
-    //     return;
-    // }
-
     Serial.println("Flush start");
 
     int width = lv_area_get_width(area);
@@ -66,9 +127,7 @@ void my_disp_flush(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char
     {
         for (x = area->x1; x <= area->x2; x++)
         {
-
             // Calculate the index in the px_map buffer for column-first order
-            // int32_t index = (x - area->x1) * height + (y - area->y1);
             int32_t index = (y - area->y1) * width + (x - area->x1);
 
             // Retrieve the pixel color as uint16_t (assuming px_map is RGB565)
@@ -142,51 +201,43 @@ void my_disp_flush(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char
     lv_display_flush_ready(lvDisplay); /* tell lvgl that flushing is done */
 }
 
-/* Tick source, tell LVGL how much time (milliseconds) has passed */
-static uint32_t my_tick(void)
+
+// LV_KEY_UP        = 17,  /*0x11*/
+// LV_KEY_DOWN      = 18,  /*0x12*/
+// LV_KEY_RIGHT     = 19,  /*0x13*/
+// LV_KEY_LEFT      = 20,  /*0x14*/
+// LV_KEY_ESC       = 27,  /*0x1B*/
+// LV_KEY_DEL       = 127, /*0x7F*/
+// LV_KEY_BACKSPACE = 8,   /*0x08*/
+// LV_KEY_ENTER     = 10,  /*0x0A, '\n'*/
+// LV_KEY_NEXT      = 9,   /*0x09, '\t'*/
+// LV_KEY_PREV      = 11,  /*0x0B, '*/
+// LV_KEY_HOME      = 2,   /*0x02, STX*/
+// LV_KEY_END       = 3,   /*0x03, ETX*/
+
+void joystick_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
-    return millis();
+    // Serial.println("Joystick read triggered");
+    uint8_t switchInput = inputHandler.handleInput(isrPending, isrStartedAt);
+    if (switchInput) {
+        Serial.println("Joystick read triggered");
+    }
+    // data->key = last_key(); /* Get the last pressed or released key */
+
+    // if (key_pressed()) {
+    //     data->state = LV_INDEV_STATE_PRESSED;
+    // }
+    // else {
+    //     data->state = LV_INDEV_STATE_RELEASED;
+    // } 
 }
 
-void hal_setup(void)
+void IRAM_ATTR isr()
 {
+    if (isrPending) {
+		return;
+	}
 
-    Serial.begin(115200);
-
-    // Set display pins
-    pinMode(4, INPUT);   // BUSY
-    pinMode(16, OUTPUT); // RES
-    pinMode(17, OUTPUT); // DC
-    pinMode(SS, OUTPUT); // CS
-
-    // SPI
-    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
-    SPI.begin();
-
-    EPD_HW_Init_Fast();           // Full screen refresh initialization.
-    // EPD_WhiteScreen_White(); // Clear screen function.
-    // EPD_DeepSleep();         // Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
-    // delay(2000);             // Delay for 2s.
-
-    /* Set the tick callback */
-    lv_tick_set_cb(my_tick);
-
-    /* Create LVGL display and set the flush function */
-    lvDisplay = lv_display_create(screenWidth, screenHeight);
-    lv_display_set_color_format(lvDisplay, LV_COLOR_FORMAT_RGB565);
-    lv_display_set_flush_cb(lvDisplay, my_disp_flush);
-    lv_display_set_buffers(lvDisplay, lvBuffer, NULL, lvBufferSize, LV_DISPLAY_RENDER_MODE_PARTIAL);
-
-    // TODO: initialize input method
-    /* Set the touch input function */
-    // lvInput = lv_indev_create();
-    // lv_indev_set_type(lvInput, LV_INDEV_TYPE_POINTER);
-    // lv_indev_set_read_cb(lvInput, my_touchpad_read);
-}
-
-void hal_loop(void)
-{
-    /* NO while loop in this function! (handled by framework) */
-    lv_timer_handler(); // Update the UI-
-    delay(5);
+	isrStartedAt = millis();
+	isrPending = true;
 }

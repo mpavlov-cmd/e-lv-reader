@@ -1,5 +1,6 @@
 #include "lvgl.h"
 #include "app_hal.h"
+// #include <PinDefinitions.h>
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -11,14 +12,14 @@ static lv_obj_t * list1;
 
 void setup()
 {
-	// ---- GENERC DRIVER TEST START ----
+    Serial.begin(115200);
+
+    Serial.println("----- BOOT -----");
+    // Init grafics lib
 	lv_init();
 	hal_setup();
 
 	lv_example_list_1();
-	// create_black_square(lv_scr_act());
-	// lv_demo_widgets();
-	// lv_demo_music();
 }
 
 void loop()
