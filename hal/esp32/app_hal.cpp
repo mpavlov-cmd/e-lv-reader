@@ -11,11 +11,10 @@
 
 #include "PinDefinitions.h"
 #include "SwithInputHandler.h"
+#include "ButtonActions.h"
 
 // Function definitions
-static uint32_t arduino_tick(void);
-void epd_flush_cb(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char *px_map);
-
+void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 void joystick_read(lv_indev_t * indev, lv_indev_data_t * data);
 void IRAM_ATTR isr();
 
@@ -27,24 +26,99 @@ static void lv_log_print_g_cb(lv_log_level_t level, const char *buf)
 }
 #endif
 
-// Display variables
-static const uint32_t screenWidth  = 480;
-static const uint32_t screenHeight = 800;
-const unsigned int lvBufferSize = screenWidth * 32;
-uint8_t lvBuffer[lvBufferSize];
+#ifndef MY_DISP_HOR_RES
+    #define MY_DISP_HOR_RES    480
+#endif
 
-static lv_display_t *lvDisplay;
+#ifndef MY_DISP_VER_RES
+    #define MY_DISP_VER_RES    800
+#endif
+
+// Display variables
+// Static or global buffer(s). The second buffer is optional
+static lv_disp_draw_buf_t draw_buf_dsc_1;
+static lv_color_t buf_1[MY_DISP_HOR_RES * 32];
+
+static lv_disp_drv_t disp_drv; 
+static lv_disp_t* disp;   
 
 // TODO: Figure out why moving this counter causes MCU boot failure
 uint16_t chunkCounter = 0;
-
 
 // Input control
 SwithInputHandler inputHandler(BT_INPUT_2, BT_INPUT_1, BT_INPUT_0);
 volatile bool isrPending = false; 
 volatile unsigned long isrStartedAt = 0;
 
-static lv_indev_t *lvInput;
+
+void create_black_square(lv_obj_t * parent) {
+    // Create a new object (basic rectangle object)
+    lv_obj_t * rect = lv_obj_create(parent); 
+    
+    lv_obj_set_size(rect, 128, 128);
+    
+    // Set the position of the rectangle (optional)
+    lv_obj_set_pos(rect, 0, 0); // Adjust as needed
+    
+    // Create a style for the rectangle
+    static lv_style_t style_black;
+    lv_style_init(&style_black);
+    
+    // Set the background color to black
+    lv_style_set_bg_color(&style_black, lv_color_make(0, 0, 0));
+    lv_style_set_bg_opa(&style_black, LV_OPA_COVER); // Ensure it's fully opaque
+
+    // Apply the style to the rectangle
+    lv_obj_add_style(rect, &style_black, 0);
+}
+
+// static void event_handler(lv_event_t * e) {
+//     Serial.println("Button Event!");
+//      create_black_square(lv_screen_active());
+//     // lv_event_code_t code = lv_event_get_code(e);
+//     // lv_obj_t * obj = lv_event_get_target(e);
+//     // if(code == LV_EVENT_CLICKED) {
+//     // }
+// }
+
+// void lv_example_list_1(void)
+// {
+
+//     lv_group_t * widget_group = lv_group_create();
+
+//     /*Create a list*/
+//     lv_obj_t * list1 = lv_list_create(lv_screen_active());
+//     lv_obj_set_size(list1, 256, 512);
+//     lv_obj_center(list1);
+
+//     /*Add buttons to the list*/
+//     lv_list_add_text(list1, "File");
+
+//     lv_obj_t * btn1 = lv_list_add_button(list1, LV_SYMBOL_FILE, "New");
+//     lv_group_add_obj(widget_group, btn1);
+//     lv_obj_add_state(btn1, LV_STATE_CHECKED);
+//     lv_obj_add_event_cb(btn1, event_handler, LV_EVENT_CLICKED, NULL);
+
+//     lv_obj_t * btn2 = lv_list_add_button(list1, LV_SYMBOL_DIRECTORY, "Open");
+//     lv_group_add_obj(widget_group, btn2);
+//     lv_obj_add_event_cb(btn2, event_handler, LV_EVENT_CLICKED, NULL);
+
+//     lv_obj_t * btn3 = lv_list_add_button(list1, LV_SYMBOL_SAVE, "Save");
+//     lv_group_add_obj(widget_group, btn3);
+//     lv_obj_add_event_cb(btn3, event_handler, LV_EVENT_CLICKED, NULL);
+
+// 	static lv_style_t style_font24;
+//     lv_style_init(&style_font24);
+
+//     // Set the text font size
+//     lv_style_set_text_font(&style_font24, &lv_font_montserrat_24); 
+
+// 	lv_obj_add_style(list1, &style_font24, LV_PART_MAIN); // Apply to the main part
+// 	lv_obj_add_style(list1, &style_font24, LV_PART_ITEMS);
+
+//     // Button control 
+//     lv_indev_set_group(lvInput, widget_group);
+// }
 
 void hal_setup(void)
 {
@@ -60,25 +134,40 @@ void hal_setup(void)
     SPI.begin();
 
     EPD_HW_Init_Fast();           // Full screen refresh initialization.
+    // Set buffer for patia refresh
+    EPD_SetRAMValue_BaseMap(gImageBlank);
+
     // EPD_WhiteScreen_White(); // Clear screen function.
     // EPD_DeepSleep();         // Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
     // delay(2000);             // Delay for 2s.
 
-    /* Set the tick callback */
-    lv_tick_set_cb(arduino_tick);
+    // ------ Start display config ------
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 32);   /*Initialize the display buffer*/
+    lv_disp_drv_init(&disp_drv);                    /*Basic initialization*/
 
-    /* Create LVGL display and set the flush function */
-    lvDisplay = lv_display_create(screenWidth, screenHeight);
-    lv_display_set_color_format(lvDisplay, LV_COLOR_FORMAT_RGB565);
-    lv_display_set_flush_cb(lvDisplay, epd_flush_cb);
-    lv_display_set_buffers(lvDisplay, lvBuffer, NULL, lvBufferSize, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    /*Set up the functions to access to your display*/
 
-    // Set the input function
-    inputHandler.configure(isr, 100, 2500);
+    // Set the resolution of the display
+    disp_drv.hor_res = MY_DISP_HOR_RES;
+    disp_drv.ver_res = MY_DISP_VER_RES;
 
-    lvInput = lv_indev_create();
-    lv_indev_set_type(lvInput, LV_INDEV_TYPE_KEYPAD);
-    lv_indev_set_read_cb(lvInput, joystick_read);
+    // Used to copy the buffer's content to the display*/
+    disp_drv.flush_cb = epd_flush_cb;
+    // Set a display buffer
+    disp_drv.draw_buf = &draw_buf_dsc_1;
+
+    // Get pointer to the active display 
+    disp = lv_disp_drv_register(&disp_drv);
+
+    // // Set the input function
+    // inputHandler.configure(isr, 100, 2500);
+
+    // lvInput = lv_indev_create();
+    // lv_indev_set_type(lvInput, LV_INDEV_TYPE_KEYPAD);
+    // lv_indev_set_read_cb(lvInput, joystick_read);
+
+    // lv_example_list_1();
+    create_black_square(lv_disp_get_scr_act(disp));
 }
 
 void hal_loop(void)
@@ -86,13 +175,6 @@ void hal_loop(void)
     // Update the UI
     lv_timer_handler(); 
     delay(5);
-}
-
-// static lv_indev_t *lvInput;
-// Tick source, tell LVGL how much time (milliseconds) has passed
-static uint32_t arduino_tick(void)
-{
-    return millis();
 }
 
 // Display flushing 
@@ -105,7 +187,7 @@ static uint32_t arduino_tick(void)
 // https://github.com/lvgl/lv_platformio/blob/master/platformio.ini
 // Full documentation on proting
 // https://docs.lvgl.io/8/porting/display.html#examples
-void epd_flush_cb(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char *px_map)
+void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     Serial.println("Flush start");
 
@@ -131,22 +213,10 @@ void epd_flush_cb(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char 
             int32_t index = (y - area->y1) * width + (x - area->x1);
 
             // Retrieve the pixel color as uint16_t (assuming px_map is RGB565)
-            uint16_t color = ((uint16_t *)px_map)[index];
+            lv_color_t currentColor = ((lv_color_t *)color_p)[index];
 
-            // Extract RGB components from the RGB565 color
-            uint8_t r = (color >> 11) & 0x1F; // Red component (5 bits)
-            uint8_t g = (color >> 5) & 0x3F;  // Green component (6 bits)
-            uint8_t b = color & 0x1F;         // Blue component (5 bits)
-
-            // Scale RGB components to 8 bits
-            r = (r * 255) / 31;
-            g = (g * 255) / 63;
-            b = (b * 255) / 31;
-
-            // Calculate luminance using the formula
-            uint8_t luminance = (uint8_t)(0.299 * r + 0.587 * g + 0.114 * b);
             // Threshold to determine black or white
-            uint8_t pixel = (luminance > 128) ? 0 : 1; // 1 for black, 0 for white
+            uint8_t pixel = (lv_color_brightness(currentColor) > 128) ? 0 : 1; // 1 for black, 0 for white
 
             // Calculate the position in the buffer for column-major drawing
             int bufIdx = (x - area->x1) * height + (y - area->y1);
@@ -178,27 +248,27 @@ void epd_flush_cb(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char 
     //     }
     // }
 
+    Serial.println("Before RAM");
     if (chunkCounter == 0)
     {
-        // Serial.println("-------------------------- Initial Update --------------------------");
+        Serial.println("-------------------------- Initial Update --------------------------");
         // EPD_HW_Init_Fast();
-        EPD_SetRAMValue_BaseMap(gImageBlank);
+        // EPD_SetRAMValue_BaseMap(gImageBlank);
     }
-
 
     Serial.printf("------------ x1,y1: %ix%i width: %i, height: %i ------------\n", area->x1, area->y1, width, height);
     EPD_Dis_Part_RAM(area->y1, area->x1, epd_buffer, width, height);
     chunkCounter++;
 
     // if (chunkCounter == 10) {
-    if (lv_disp_flush_is_last(lvDisplay)) {
+    if (lv_disp_flush_is_last(disp_drv)) {
         chunkCounter = 0;
         EPD_Part_Update();
         EPD_DeepSleep();
     }
     
     // Anyway tell lgvl that display is ready
-    lv_display_flush_ready(lvDisplay); /* tell lvgl that flushing is done */
+    lv_disp_flush_ready(disp_drv); /* tell lvgl that flushing is done */
 }
 
 
@@ -217,19 +287,49 @@ void epd_flush_cb(lv_display_t *lvDisplay, const lv_area_t *area, unsigned char 
 
 void joystick_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
+    static bool btnPressed = false;
+    bool heldBit = false;
+
     // Serial.println("Joystick read triggered");
     uint8_t switchInput = inputHandler.handleInput(isrPending, isrStartedAt);
     if (switchInput) {
-        Serial.println("Joystick read triggered");
-    }
-    // data->key = last_key(); /* Get the last pressed or released key */
+        Serial.println("Button Pressed");
 
-    // if (key_pressed()) {
-    //     data->state = LV_INDEV_STATE_PRESSED;
-    // }
-    // else {
-    //     data->state = LV_INDEV_STATE_RELEASED;
-    // } 
+        // Mark btn as pressed 
+        data->state = LV_INDEV_STATE_PRESSED;
+        btnPressed  = true;
+
+        const uint8_t directionInput = controlDirection(switchInput, heldBit);
+
+        if (directionInput == BUTTON_ACTION_LEFT) {
+            data->key = LV_KEY_LEFT;
+        }
+
+        if (directionInput == BUTTON_ACTION_RIGHT) {
+            data->key = LV_KEY_RIGHT;
+        }
+
+        if (directionInput == BUTTON_ACTION_UP) {
+             data->key = LV_KEY_UP;
+        }
+
+        if (directionInput == BUTTON_ACTION_DOWN) {
+            data->key = LV_KEY_DOWN;
+        }
+
+        if (directionInput == BUTTON_ACTION_MID) {
+             data->key = LV_KEY_ENTER;
+        }
+
+    } else {
+        // TODO: Figure out wy released is triggered while held
+        if (btnPressed) {
+            Serial.println("Button Released");
+
+            btnPressed  = false; 
+            data->state = LV_INDEV_STATE_RELEASED;
+        }
+    }
 }
 
 void IRAM_ATTR isr()
