@@ -4,8 +4,23 @@
 
 #include <Arduino.h>
 #include <SPI.h>
+#include "SD.h"
+#include "FS.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include "drvlvgl/Driver_Display_EPD.h"
 #include "drvlvgl/Driver_Input_Keypad.h"
+
+#include "PinDefinitions.h"
+#include "FileManager.h"
+
+// Function definitions
+void blink(void* pvParameters);
+
+// Variable definitions
+FileManager fileManager(SD, PIN_CS_SD);
 
 void create_black_square(lv_obj_t * parent) {
     // Create a new object (basic rectangle object)
@@ -76,16 +91,22 @@ void lv_example_list_1(void)
     // Button control 
     lv_indev_set_group(get_lv_keypad(), widget_group);
 }
-// Logging https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/log.html
 
 void hal_setup(void)
 {
+    xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
+
     // SPI
     // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     SPI.begin();
 
+    // Init grafics lib
+	lv_init();
     lv_epd_disp_init();
     lv_joystick_indev_init();
+
+    // File manager
+    fileManager.begin();
 
     // create_black_square(lv_disp_get_scr_act(disp));
     lv_example_list_1();
@@ -96,4 +117,15 @@ void hal_loop(void)
     // Update the UI
     lv_timer_handler(); 
     delay(5);
+}
+
+void blink(void *pvParameters) {
+	pinMode(PIN_LED, OUTPUT);
+	for (;;) {
+		// Blink
+		digitalWrite(PIN_LED, HIGH);
+		vTaskDelay(500 / portTICK_RATE_MS);
+		digitalWrite(PIN_LED, LOW);
+		vTaskDelay(500 / portTICK_RATE_MS);
+    }
 }

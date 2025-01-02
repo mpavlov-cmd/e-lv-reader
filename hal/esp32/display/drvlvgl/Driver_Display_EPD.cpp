@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include "lvgl.h"
-#include "log_tags.h"
+#include "LogTags.h"
 #include "esp_log.h"
 
 #include "PinDefinitions.h"
