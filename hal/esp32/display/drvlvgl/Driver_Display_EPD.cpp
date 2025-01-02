@@ -11,6 +11,7 @@
 // Function definitions
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 void epd_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
+void tick_timer_callback(void *arg);
 
 #ifndef MY_DISP_HOR_RES
 #define MY_DISP_HOR_RES 480
@@ -73,6 +74,16 @@ void lv_epd_disp_init(void)
 
     // Get pointer to the active display 
     disp = lv_disp_drv_register(&disp_drv);
+
+    // Lunch tick timer for display refreh
+    // Set up the tick timer
+    const esp_timer_create_args_t tick_timer_args = {
+        .callback = &tick_timer_callback,
+        .name = "lv_tick_timer"
+    };
+    esp_timer_handle_t tick_timer;
+    esp_timer_create(&tick_timer_args, &tick_timer);
+    esp_timer_start_periodic(tick_timer, 1000); // 1ms interval
 }
 
 // Display flushing 
@@ -182,4 +193,8 @@ void epd_rounder_cb(lv_disp_drv_t *disp_drv, lv_area_t *area)
 
     // Round the y2 coordinate up to the nearest multiple of 8
     area->y2 = ((area->y2 + 7) / 8) * 8 - 1;
+}
+
+void tick_timer_callback(void *arg) {
+    lv_tick_inc(1); // Increment LVGL tick by 1 ms
 }

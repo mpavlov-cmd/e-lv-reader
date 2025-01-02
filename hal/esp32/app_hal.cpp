@@ -6,10 +6,6 @@
 #include "drvlvgl/Driver_Display_EPD.h"
 #include "drvlvgl/Driver_Input_Keypad.h"
 
-void tick_timer_callback(void *arg) {
-    lv_tick_inc(1); // Increment LVGL tick by 1 ms
-}
-
 void create_black_square(lv_obj_t * parent) {
     // Create a new object (basic rectangle object)
     lv_obj_t * rect = lv_obj_create(parent); 
@@ -81,22 +77,13 @@ void lv_example_list_1(void)
     // Button control 
     lv_indev_set_group(get_lv_keypad(), widget_group);
 }
+// Logging https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/log.html
 
 void hal_setup(void)
 {
     lv_epd_disp_init();
     lv_joystick_indev_init();
 
-    // Set up the tick timer
-    const esp_timer_create_args_t tick_timer_args = {
-        .callback = &tick_timer_callback,
-        .name = "lv_tick_timer"
-    };
-    esp_timer_handle_t tick_timer;
-    esp_timer_create(&tick_timer_args, &tick_timer);
-    esp_timer_start_periodic(tick_timer, 1000); // 1ms interval
-
-    // ----- INPUT DRIVER INIT END -----
     // create_black_square(lv_disp_get_scr_act(disp));
     lv_example_list_1();
 }
