@@ -5,9 +5,9 @@
 #include <Arduino.h>
 #include <SPI.h>
 
-#include "Display_EPD_W21_spi.h"
-#include "Display_EPD_W21.h"
-#include "DisplayBuffer.h"
+#include "drvspi/Display_EPD_W21_spi.h"
+#include "drvspi/Display_EPD_W21.h"
+#include "drvspi/Display_EPD_Buffer.h"
 
 #include "PinDefinitions.h"
 #include "SwithInputHandler.h"
@@ -15,6 +15,7 @@
 
 // Function definitions
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
+void epd_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
 void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data);
 void IRAM_ATTR isr();
 
@@ -83,7 +84,11 @@ void create_black_square(lv_obj_t * parent) {
 
 static void event_handler(lv_event_t * e) {
     Serial.println("Button Event!");
-    create_black_square(lv_scr_act());
+    lv_obj_t *widget = lv_event_get_target(e);
+
+    lv_obj_t *parent_obj = lv_obj_get_parent(widget);
+  
+    // create_black_square(lv_scr_act());
     // lv_event_code_t code = lv_event_get_code(e);
     // lv_obj_t * obj = lv_event_get_target(e);
     // if(code == LV_EVENT_CLICKED) {
@@ -164,7 +169,7 @@ void hal_setup(void)
 
     // Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = epd_flush_cb;
-    // Set a display buffer
+    disp_drv.rounder_cb = epd_rounder_cb;
     disp_drv.draw_buf = &draw_buf_dsc_1;
 
     // Get pointer to the active display 
@@ -275,8 +280,8 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
     if (chunkCounter == 0)
     {
         Serial.println("-------------------------- Initial Update --------------------------");
-        // EPD_HW_Init_Fast();
-        // EPD_SetRAMValue_BaseMap(gImageBlank);
+    //     EPD_HW_Init_Fast();
+    //     EPD_SetRAMValue_BaseMap(gImageBlank);
     }
 
     Serial.printf("------------ x1,y1: %ix%i width: %i, height: %i ------------\n", area->x1, area->y1, width, height);
@@ -294,6 +299,20 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
     lv_disp_flush_ready(disp_drv); /* tell lvgl that flushing is done */
 }
 
+void epd_rounder_cb(lv_disp_drv_t *disp_drv, lv_area_t *area)
+{
+    // Round the x1 coordinate down to the nearest multiple of 8
+    area->x1 = (area->x1 / 8) * 8;
+
+    // Round the x2 coordinate up to the nearest multiple of 8
+    area->x2 = ((area->x2 + 7) / 8) * 8 - 1;
+
+    // Round the y1 coordinate down to the nearest multiple of 8
+    area->y1 = (area->y1 / 8) * 8;
+
+    // Round the y2 coordinate up to the nearest multiple of 8
+    area->y2 = ((area->y2 + 7) / 8) * 8 - 1;
+}
 
 // LV_KEY_UP        = 17,  /*0x11*/
 // LV_KEY_DOWN      = 18,  /*0x12*/
@@ -316,7 +335,11 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
     // Serial.println("Joystick read triggered");
     uint8_t switchInput = inputHandler.handleInput(isrPending, isrStartedAt);
     if (switchInput) {
+
         Serial.println("Button Pressed");
+
+        // TODO: This is working, but resouce consuming, due to the entire screen redraw. Optimize
+        lv_obj_invalidate(lv_scr_act());
 
         // Mark btn as pressed 
         data->state = LV_INDEV_STATE_PRESSED;
@@ -325,11 +348,11 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
         const uint8_t directionInput = controlDirection(switchInput, heldBit);
 
         if (directionInput == BUTTON_ACTION_LEFT) {
-            data->key = LV_KEY_LEFT;
+            data->key = LV_KEY_PREV;
         }
 
         if (directionInput == BUTTON_ACTION_RIGHT) {
-            data->key = LV_KEY_RIGHT;
+            data->key = LV_KEY_NEXT;
         }
 
         if (directionInput == BUTTON_ACTION_UP) {
