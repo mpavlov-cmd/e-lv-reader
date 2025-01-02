@@ -1,5 +1,7 @@
 #include "Driver_Input_Keypad.h"
 
+#include <esp_log.h>
+#include "log_tags.h"
 #include <Arduino.h>
 
 #include "PinDefinitions.h"
@@ -52,11 +54,10 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
     static bool btnPressed = false;
     bool heldBit = false;
     
-    // Serial.println("Joystick read triggered");
     uint8_t switchInput = inputHandler.handleInput(isrPending, isrStartedAt);
     if (switchInput) {
 
-        Serial.println("Button Pressed");
+        ESP_LOGD(TAG_INPUT, "Button Pressed");
 
         // TODO: This is working, but resouce consuming, due to the entire screen redraw. Optimize
         lv_obj_invalidate(lv_scr_act());
@@ -90,7 +91,7 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
     } else {
         // TODO: Figure out wy released is triggered while held
         if (btnPressed) {
-            Serial.println("Button Released");
+            ESP_LOGD(TAG_INPUT, "Button Released");
 
             btnPressed  = false; 
             data->state = LV_INDEV_STATE_RELEASED;

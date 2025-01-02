@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "lvgl.h"
+#include "log_tags.h"
 #include "esp_log.h"
 
 #include "PinDefinitions.h"
@@ -21,8 +22,6 @@ void tick_timer_callback(void *arg);
 #ifndef MY_DISP_VER_RES
 #define MY_DISP_VER_RES 800
 #endif
-
-const char* TAG_DISPDRV = "DISPDRV";
 
 // Display variables
 // Static or global buffer(s). The second buffer is optional
@@ -99,20 +98,20 @@ void lv_epd_disp_init(void)
 // https://docs.lvgl.io/8/porting/display.html#examples
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
-    ESP_LOGD(TAG_DISPDRV, "--- Flush Start ---");
+    ESP_LOGD(TAG_DISPL_DRV, "--- Flush Start ---");
 
     int width = lv_area_get_width(area);
     int height = lv_area_get_height(area);
 
     //  lv_draw_sw_rgb565_swap(px_map, width * height);
 
-    ESP_LOGD(TAG_DISPDRV, "Width and height: %ix%i", width, height);
-    ESP_LOGD(TAG_DISPDRV, "Start pos: %ix%i", area->x1, area->y1);
+    ESP_LOGD(TAG_DISPL_DRV, "Width and height: %ix%i", width, height);
+    ESP_LOGD(TAG_DISPL_DRV, "Start pos: %ix%i", area->x1, area->y1);
 
     // Prepare a buffer to store the e-paper-compatible image data
     unsigned char epd_buffer[(width * height) / 8];
     memset(epd_buffer, 0XFF, sizeof(epd_buffer)); // Initialize to white
-    ESP_LOGD(TAG_DISPDRV, "Size of buffer: %i", sizeof(epd_buffer));
+    ESP_LOGD(TAG_DISPL_DRV, "Size of buffer: %i", sizeof(epd_buffer));
 
     int32_t x, y;
     for (y = area->y1; y <= area->y2; y++)
@@ -150,23 +149,23 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
     // {
     //     for (int i = 0; i < (width * height + 7) / 8; i++)
     //     {
-    //         ESP_LOGD(TAG_DISPDRV, "0x%02X, ", epd_buffer[i]);
+    //         ESP_LOGD(TAG_DISPL_DRV, "0x%02X, ", epd_buffer[i]);
     //         if ((i + 1) % 8 == 0 && i != 0)
     //         {
-    //              ESP_LOGD(TAG_DISPDRV, "")
+    //              ESP_LOGD(TAG_DISPL_DRV, "")
     //         }
     //     }
     // }
 
-    ESP_LOGD(TAG_DISPDRV, "--- Before RAM ---");
+    ESP_LOGD(TAG_DISPL_DRV, "--- Before RAM ---");
     if (chunkCounter == 0)
     {
-        ESP_LOGD(TAG_DISPDRV, "--- Initial Update ---");
+        ESP_LOGD(TAG_DISPL_DRV, "--- Initial Update ---");
     //     EPD_HW_Init_Fast();
     //     EPD_SetRAMValue_BaseMap(gImageBlank);
     }
 
-    ESP_LOGD(TAG_DISPDRV, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
+    ESP_LOGD(TAG_DISPL_DRV, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
     EPD_Dis_Part_RAM(area->y1, area->x1, epd_buffer, width, height);
     chunkCounter++;
 

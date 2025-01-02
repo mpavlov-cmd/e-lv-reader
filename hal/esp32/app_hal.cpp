@@ -29,9 +29,7 @@ void create_black_square(lv_obj_t * parent) {
 }
 
 static void event_handler(lv_event_t * e) {
-    Serial.println("Button Event!");
     lv_obj_t *widget = lv_event_get_target(e);
-
     lv_obj_t *parent_obj = lv_obj_get_parent(widget);
   
     // create_black_square(lv_scr_act());

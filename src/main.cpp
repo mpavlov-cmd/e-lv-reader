@@ -1,11 +1,10 @@
 #include "lvgl.h"
 #include "app_hal.h"
 #include "esp_log.h"
+#include "log_tags.h"
 
 #ifdef ARDUINO
 #include <Arduino.h>
-
-const char* TAG_MAIN = "MAIN";
 
 void setup()
 {
