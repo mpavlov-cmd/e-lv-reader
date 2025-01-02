@@ -3,6 +3,7 @@
 #include "lvgl.h"
 
 #include <Arduino.h>
+#include <SPI.h>
 #include "drvlvgl/Driver_Display_EPD.h"
 #include "drvlvgl/Driver_Input_Keypad.h"
 
@@ -81,6 +82,10 @@ void lv_example_list_1(void)
 
 void hal_setup(void)
 {
+    // SPI
+    // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+    SPI.begin();
+
     lv_epd_disp_init();
     lv_joystick_indev_init();
 

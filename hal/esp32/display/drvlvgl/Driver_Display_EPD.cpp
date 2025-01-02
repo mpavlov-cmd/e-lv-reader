@@ -1,9 +1,10 @@
 #include "Driver_Display_EPD.h"
 
 #include <Arduino.h>
-#include <SPI.h>
 #include "lvgl.h"
+#include "esp_log.h"
 
+#include "PinDefinitions.h"
 #include "drvspi/Display_EPD_W21_spi.h"
 #include "drvspi/Display_EPD_W21.h"
 #include "drvspi/Display_EPD_Buffer.h"
@@ -21,6 +22,8 @@ void tick_timer_callback(void *arg);
 #define MY_DISP_VER_RES 800
 #endif
 
+const char* TAG_DISPDRV = "DISPDRV";
+
 // Display variables
 // Static or global buffer(s). The second buffer is optional
 static lv_disp_draw_buf_t draw_buf_dsc_1;
@@ -32,18 +35,16 @@ static lv_disp_t* disp;
 // TODO: Figure out why moving this counter causes MCU boot failure
 uint16_t chunkCounter = 0;
 
+/**
+ * Requires SPI to be initialized 
+ */
 void lv_epd_disp_init(void)
 {
-     // ----- EPD INIT BEGIN -----
     // Set display pins
-    pinMode(4, INPUT);   // BUSY
-    pinMode(16, OUTPUT); // RES
-    pinMode(17, OUTPUT); // DC
-    pinMode(SS, OUTPUT); // CS
-
-    // SPI
-    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
-    SPI.begin();
+    pinMode(PIN_DISP_BUSY, INPUT);
+    pinMode(PIN_DISP_RST,  OUTPUT);
+    pinMode(PIN_DISP_DC,   OUTPUT); 
+    pinMode(PIN_DSIP_CS,   OUTPUT);
 
     // Full screen refresh initialization.
     EPD_HW_Init_Fast();          
@@ -98,20 +99,20 @@ void lv_epd_disp_init(void)
 // https://docs.lvgl.io/8/porting/display.html#examples
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
-    Serial.println("Flush start");
+    ESP_LOGD(TAG_DISPDRV, "--- Flush Start ---");
 
     int width = lv_area_get_width(area);
     int height = lv_area_get_height(area);
 
     //  lv_draw_sw_rgb565_swap(px_map, width * height);
 
-    Serial.printf("Width and height: %ix%i\n", width, height);
-    Serial.printf("Start pos: %ix%i\n", area->x1, area->y1);
+    ESP_LOGD(TAG_DISPDRV, "Width and height: %ix%i", width, height);
+    ESP_LOGD(TAG_DISPDRV, "Start pos: %ix%i", area->x1, area->y1);
 
     // Prepare a buffer to store the e-paper-compatible image data
     unsigned char epd_buffer[(width * height) / 8];
     memset(epd_buffer, 0XFF, sizeof(epd_buffer)); // Initialize to white
-    Serial.printf("Size of buffer: %i\n", sizeof(epd_buffer));
+    ESP_LOGD(TAG_DISPDRV, "Size of buffer: %i", sizeof(epd_buffer));
 
     int32_t x, y;
     for (y = area->y1; y <= area->y2; y++)
@@ -149,23 +150,23 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
     // {
     //     for (int i = 0; i < (width * height + 7) / 8; i++)
     //     {
-    //         Serial.printf("0x%02X, ", epd_buffer[i]);
+    //         ESP_LOGD(TAG_DISPDRV, "0x%02X, ", epd_buffer[i]);
     //         if ((i + 1) % 8 == 0 && i != 0)
     //         {
-    //             Serial.println();
+    //              ESP_LOGD(TAG_DISPDRV, "")
     //         }
     //     }
     // }
 
-    Serial.println("Before RAM");
+    ESP_LOGD(TAG_DISPDRV, "--- Before RAM ---");
     if (chunkCounter == 0)
     {
-        Serial.println("-------------------------- Initial Update --------------------------");
+        ESP_LOGD(TAG_DISPDRV, "--- Initial Update ---");
     //     EPD_HW_Init_Fast();
     //     EPD_SetRAMValue_BaseMap(gImageBlank);
     }
 
-    Serial.printf("------------ x1,y1: %ix%i width: %i, height: %i ------------\n", area->x1, area->y1, width, height);
+    ESP_LOGD(TAG_DISPDRV, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
     EPD_Dis_Part_RAM(area->y1, area->x1, epd_buffer, width, height);
     chunkCounter++;
 
@@ -184,17 +185,15 @@ void epd_rounder_cb(lv_disp_drv_t *disp_drv, lv_area_t *area)
 {
     // Round the x1 coordinate down to the nearest multiple of 8
     area->x1 = (area->x1 / 8) * 8;
-
     // Round the x2 coordinate up to the nearest multiple of 8
     area->x2 = ((area->x2 + 7) / 8) * 8 - 1;
-
     // Round the y1 coordinate down to the nearest multiple of 8
     area->y1 = (area->y1 / 8) * 8;
-
     // Round the y2 coordinate up to the nearest multiple of 8
     area->y2 = ((area->y2 + 7) / 8) * 8 - 1;
 }
 
 void tick_timer_callback(void *arg) {
-    lv_tick_inc(1); // Increment LVGL tick by 1 ms
+    // Increment LVGL tick by 1 ms
+    lv_tick_inc(1); 
 }

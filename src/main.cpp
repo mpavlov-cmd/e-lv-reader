@@ -1,10 +1,3 @@
-#ifdef CORE_DEBUG_LEVEL
-#undef CORE_DEBUG_LEVEL
-#endif
-
-#define CORE_DEBUG_LEVEL 4
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
-
 #include "lvgl.h"
 #include "app_hal.h"
 #include "esp_log.h"
@@ -12,10 +5,12 @@
 #ifdef ARDUINO
 #include <Arduino.h>
 
+const char* TAG_MAIN = "MAIN";
+
 void setup()
 {
     Serial.begin(115200);
-	ESP_LOGD("TAG", "BOOT FROM LOG");
+	ESP_LOGI(TAG_MAIN, "----- BOOT SUCCESS -----");
 
     // Init grafics lib
 	lv_init();

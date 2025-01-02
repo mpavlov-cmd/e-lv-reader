@@ -9,6 +9,12 @@
 
 #define PIN_CHG_DET  GPIO_NUM_35 // HIGH OR LOW WHEN BATTERY CHARGING
 
+// PIN definitions for display
+#define PIN_DISP_BUSY GPIO_NUM_4
+#define PIN_DSIP_CS   GPIO_NUM_5
+#define PIN_DISP_RST  GPIO_NUM_16
+#define PIN_DISP_DC   GPIO_NUM_17
+
 // PIN definitions for input
 #define BT_INPUT_0 GPIO_NUM_36 // SENSOR_VP PIN 4
 #define BT_INPUT_1 GPIO_NUM_39 // SENSOR_VN PIN 5
