@@ -4,23 +4,7 @@
 
 #include <Arduino.h>
 #include "drvlvgl/Driver_Display_EPD.h"
-
-#include "PinDefinitions.h"
-#include "SwithInputHandler.h"
-#include "ButtonActions.h"
-
-// Function definitions
-void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data);
-void IRAM_ATTR isr();
-
-
-// Input control
-static lv_indev_drv_t indev_drv;
-static lv_indev_t * indev_keypad;
-
-SwithInputHandler inputHandler(BT_INPUT_2, BT_INPUT_1, BT_INPUT_0);
-volatile bool isrPending = false; 
-volatile unsigned long isrStartedAt = 0;
+#include "drvlvgl/Driver_Input_Keypad.h"
 
 void tick_timer_callback(void *arg) {
     lv_tick_inc(1); // Increment LVGL tick by 1 ms
@@ -95,20 +79,13 @@ void lv_example_list_1(void)
 	lv_obj_add_style(list1, &style_font24, LV_PART_ITEMS);
 
     // Button control 
-    lv_indev_set_group(indev_keypad, widget_group);
+    lv_indev_set_group(get_lv_keypad(), widget_group);
 }
 
 void hal_setup(void)
 {
     lv_epd_disp_init();
-
-    // ----- INPUT DRIVER INIT START -----
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type    = LV_INDEV_TYPE_KEYPAD;
-    indev_drv.read_cb = joystick_read;
-    indev_keypad      = lv_indev_drv_register(&indev_drv);
-
-    inputHandler.configure(isr, 100, 2500);
+    lv_joystick_indev_init();
 
     // Set up the tick timer
     const esp_timer_create_args_t tick_timer_args = {
@@ -129,80 +106,4 @@ void hal_loop(void)
     // Update the UI
     lv_timer_handler(); 
     delay(5);
-}
-
-
-
-// LV_KEY_UP        = 17,  /*0x11*/
-// LV_KEY_DOWN      = 18,  /*0x12*/
-// LV_KEY_RIGHT     = 19,  /*0x13*/
-// LV_KEY_LEFT      = 20,  /*0x14*/
-// LV_KEY_ESC       = 27,  /*0x1B*/
-// LV_KEY_DEL       = 127, /*0x7F*/
-// LV_KEY_BACKSPACE = 8,   /*0x08*/
-// LV_KEY_ENTER     = 10,  /*0x0A, '\n'*/
-// LV_KEY_NEXT      = 9,   /*0x09, '\t'*/
-// LV_KEY_PREV      = 11,  /*0x0B, '*/
-// LV_KEY_HOME      = 2,   /*0x02, STX*/
-// LV_KEY_END       = 3,   /*0x03, ETX*/
-
-void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
-{
-    static bool btnPressed = false;
-    bool heldBit = false;
-    
-    // Serial.println("Joystick read triggered");
-    uint8_t switchInput = inputHandler.handleInput(isrPending, isrStartedAt);
-    if (switchInput) {
-
-        Serial.println("Button Pressed");
-
-        // TODO: This is working, but resouce consuming, due to the entire screen redraw. Optimize
-        lv_obj_invalidate(lv_scr_act());
-
-        // Mark btn as pressed 
-        data->state = LV_INDEV_STATE_PRESSED;
-        btnPressed  = true;
-
-        const uint8_t directionInput = controlDirection(switchInput, heldBit);
-
-        if (directionInput == BUTTON_ACTION_LEFT) {
-            data->key = LV_KEY_PREV;
-        }
-
-        if (directionInput == BUTTON_ACTION_RIGHT) {
-            data->key = LV_KEY_NEXT;
-        }
-
-        if (directionInput == BUTTON_ACTION_UP) {
-             data->key = LV_KEY_UP;
-        }
-
-        if (directionInput == BUTTON_ACTION_DOWN) {
-            data->key = LV_KEY_DOWN;
-        }
-
-        if (directionInput == BUTTON_ACTION_MID) {
-             data->key = LV_KEY_ENTER;
-        }
-
-    } else {
-        // TODO: Figure out wy released is triggered while held
-        if (btnPressed) {
-            Serial.println("Button Released");
-
-            btnPressed  = false; 
-            data->state = LV_INDEV_STATE_RELEASED;
-        }
-    }
-}
-
-void IRAM_ATTR isr()
-{
-    if (isrPending) {
-		return;
-	}
-
-	isrStartedAt = millis();
-	isrPending = true;
 }
