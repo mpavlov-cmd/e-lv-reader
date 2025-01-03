@@ -174,6 +174,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
         chunkCounter = 0;
         EPD_Part_Update();
         EPD_DeepSleep();
+        ESP_LOGD(TAG_DISPL_DRV, "--- Flush completed ---");
     }
     
     // Anyway tell lgvl that display is ready

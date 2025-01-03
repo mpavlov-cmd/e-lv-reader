@@ -12,6 +12,7 @@
 
 #include "drvlvgl/Driver_Display_EPD.h"
 #include "drvlvgl/Driver_Input_Keypad.h"
+#include "drvfs/Driver_Arduino_FS.h"
 
 #include "PinDefinitions.h"
 #include "FileManager.h"
@@ -21,6 +22,16 @@ void blink(void* pvParameters);
 
 // Variable definitions
 FileManager fileManager(SD, PIN_CS_SD);
+
+
+void lv_example_bmp_1(void)
+{
+    lv_obj_t * img = lv_img_create(lv_scr_act());
+
+    lv_img_set_src(img, "S:/background/example_16bit.bmp");
+    lv_obj_center(img);
+}
+
 
 void create_black_square(lv_obj_t * parent) {
     // Create a new object (basic rectangle object)
@@ -108,8 +119,12 @@ void hal_setup(void)
     lv_epd_disp_init();
     lv_joystick_indev_init();
 
+    // Init lv grafics 
+    lv_arduino_fs_init();
+
     // create_black_square(lv_disp_get_scr_act(disp));
-    lv_example_list_1();
+    // lv_example_list_1();
+    lv_example_bmp_1();
 }
 
 void hal_loop(void)
