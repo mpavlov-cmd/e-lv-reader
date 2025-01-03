@@ -27,8 +27,8 @@ FileManager fileManager(SD, PIN_CS_SD);
 void lv_example_bmp_1(void)
 {
     lv_obj_t * img = lv_img_create(lv_scr_act());
-
-    lv_img_set_src(img, "S:/background/example_16bit.bmp");
+    // lv_img_set_src(img, "S:/background/example_16bit.bmp");
+    lv_img_set_src(img, "S:/background/ninja_new_1_8bit.bmp");
     lv_obj_center(img);
 }
 
@@ -123,7 +123,7 @@ void hal_setup(void)
     lv_arduino_fs_init();
 
     // create_black_square(lv_disp_get_scr_act(disp));
-    // lv_example_list_1();
+    //lv_example_list_1();
     lv_example_bmp_1();
 }
 
