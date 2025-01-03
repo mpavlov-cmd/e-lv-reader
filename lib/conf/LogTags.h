@@ -6,6 +6,7 @@
 #define TAG_DISPL_DRV "DISPDRV"
 #define TAG_INPUT     "INPUT"
 #define TAG_FM        "FM"
+#define TAG_SET       "SET"
 
 
 #endif // LOG_TAGS_H

@@ -100,13 +100,13 @@ void hal_setup(void)
     // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     SPI.begin();
 
+    // File manager
+    fileManager.begin();
+
     // Init grafics lib
 	lv_init();
     lv_epd_disp_init();
     lv_joystick_indev_init();
-
-    // File manager
-    fileManager.begin();
 
     // create_black_square(lv_disp_get_scr_act(disp));
     lv_example_list_1();

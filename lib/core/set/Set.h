@@ -2,6 +2,8 @@
 #define SET_H
 
 #include "SetBase.h" // Include the abstract base class
+#include "esp_log.h"
+#include "LogTags.h"
 
 template <typename T>
 class Set : public SetBase<T>
@@ -27,34 +29,24 @@ public:
     // Destructor
     ~Set()
     {
-        #if defined(SERIAL_DEBUG_ENABLED)
-        Serial.println("Entering set Distructor");
-        #endif
-        
+        ESP_LOGD(TAG_SET, "Entering set distructor");
         // Delete all dynamically allocated items
         clear();
 
-        #if defined(SERIAL_DEBUG_ENABLED)
-        Serial.println("Before array delete");
-        #endif
-        
+        ESP_LOGD(TAG_SET, "Before array delete");
         if (itemsArray != nullptr)
         {
             delete[] itemsArray;
             itemsArray = nullptr;
         }
 
-        #if defined(SERIAL_DEBUG_ENABLED)
-        Serial.println("Exiting set distructor");
-        #endif
+        ESP_LOGD(TAG_SET, "Exiting set distructor");
     }
 
     // Copy Constructor (Deep Copy)
     Set(const Set &other) : index(0), capacity(other.capacity)
     {
-        #if defined(SERIAL_DEBUG_ENABLED)
-        Serial.println("Entering copy constructor");
-        #endif
+        ESP_LOGD(TAG_SET, "Entering copy constructor");
 
         itemsArray = new T *[capacity]();
         // Deep copy each item
@@ -82,9 +74,7 @@ public:
             addItem(new T(*other.getItem(i)));
         }
 
-        #if defined(SERIAL_DEBUG_ENABLED)
-        Serial.printf("Assignment done Old size: %i, new size: %i\n", other.size(), size());
-        #endif
+        ESP_LOGD(TAG_SET, "Assignment done Old size: %i, new size: %i\n", other.size(), size());
         
         return *this;
     }
@@ -159,22 +149,16 @@ public:
      */
     void clear() override
     {
-        #if defined(SERIAL_DEBUG_ENABLED)
-        Serial.println("Inside of clear method");
-        #endif
+        ESP_LOGD(TAG_SET, "Inside of clear method");
         while (index > 0)
         {
-            #if defined(SERIAL_DEBUG_ENABLED)
-            Serial.printf("Deleting index: %i\n", index);
-            #endif
+            ESP_LOGD(TAG_SET, "Deleting index: %i", index);
 
             delete itemsArray[--index]; // Delete each item
             itemsArray[index] = nullptr;
         }
 
-        #if defined(SERIAL_DEBUG_ENABLED)
-        Serial.println("Clear completed");
-        #endif
+        ESP_LOGD(TAG_SET, "Clear completed");
     }
 };
 
