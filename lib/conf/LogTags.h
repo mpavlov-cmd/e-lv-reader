@@ -7,6 +7,7 @@
 #define TAG_INPUT     "INPUT"
 #define TAG_FM        "FM"
 #define TAG_SET       "SET"
+#define TAG_POWER     "PWR"
 
 
 #endif // LOG_TAGS_H
