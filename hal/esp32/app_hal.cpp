@@ -16,23 +16,73 @@
 
 #include "PinDefinitions.h"
 #include "FileManager.h"
+#include "AbstractIntent.h"
+#include "intent/IntentHome.h"
 
 // Function definitions
 void blink(void* pvParameters);
+void taskIntentFreq(void* pvParameters);
 
 // Variable definitions
+ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
 
+TaskHandle_t intentFreqHandle = NULL;
+AbstractIntent* intentCurrent = new IntentHome(rtc, fileManager);
 
-void lv_example_bmp_1(void)
+
+void hal_setup(void)
 {
-    lv_obj_t * img = lv_img_create(lv_scr_act());
-    // lv_img_set_src(img, "S:/background/example_16bit.bmp");
-    lv_img_set_src(img, "S:/background/ninja_new_1_8bit.bmp");
-    lv_obj_center(img);
+    xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
+
+    // SPI
+    // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+    SPI.begin();
+
+    // File manager
+    fileManager.begin();
+
+    // Init grafics lib
+	lv_init();
+    lv_epd_disp_init();
+    lv_joystick_indev_init();
+
+    // Init lv file system 
+    lv_arduino_fs_init();
+
+    // Lunch intent mechaism
+    intentCurrent->onStartUp(IntentArgument::NO_ARG);
+
+    xTaskCreate(taskIntentFreq, "intentFreq", 4096, NULL, 1, &intentFreqHandle);
 }
 
+void hal_loop(void)
+{
+    // Update the UI
+    lv_timer_handler(); 
+    delay(5);
+}
 
+void blink(void *pvParameters) {
+	pinMode(PIN_LED, OUTPUT);
+	for (;;) {
+		// Blink
+		digitalWrite(PIN_LED, HIGH);
+		vTaskDelay(500 / portTICK_RATE_MS);
+		digitalWrite(PIN_LED, LOW);
+		vTaskDelay(500 / portTICK_RATE_MS);
+    }
+}
+
+void taskIntentFreq(void *pvParameters)
+{
+    for(;;) {
+		intentCurrent->onFrequncy();
+		vTaskDelay(10000 / portTICK_RATE_MS);
+	}
+}
+
+// To be moved:
 void create_black_square(lv_obj_t * parent) {
     // Create a new object (basic rectangle object)
     lv_obj_t * rect = lv_obj_create(parent); 
@@ -101,46 +151,4 @@ void lv_example_list_1(void)
 
     // Button control 
     lv_indev_set_group(get_lv_keypad(), widget_group);
-}
-
-void hal_setup(void)
-{
-    xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
-
-    // SPI
-    // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
-    SPI.begin();
-
-    // File manager
-    fileManager.begin();
-
-    // Init grafics lib
-	lv_init();
-    lv_epd_disp_init();
-    lv_joystick_indev_init();
-
-    // Init lv grafics 
-    lv_arduino_fs_init();
-
-    // create_black_square(lv_disp_get_scr_act(disp));
-    //lv_example_list_1();
-    lv_example_bmp_1();
-}
-
-void hal_loop(void)
-{
-    // Update the UI
-    lv_timer_handler(); 
-    delay(5);
-}
-
-void blink(void *pvParameters) {
-	pinMode(PIN_LED, OUTPUT);
-	for (;;) {
-		// Blink
-		digitalWrite(PIN_LED, HIGH);
-		vTaskDelay(500 / portTICK_RATE_MS);
-		digitalWrite(PIN_LED, LOW);
-		vTaskDelay(500 / portTICK_RATE_MS);
-    }
 }

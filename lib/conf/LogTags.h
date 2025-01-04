@@ -9,6 +9,7 @@
 #define TAG_SET   "SET"
 #define TAG_POWER "PWR"
 #define TAG_WIDGT "WIDGET"
+#define TAG_INTNT "INETNT"
 
 
 #endif // LOG_TAGS_H

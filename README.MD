@@ -1,6 +1,4 @@
-# Useful 
-- lvgl read from sd: https://forum.lvgl.io/t/i-cannot-display-a-jpg-image-from-sd/18179
-- sd driver sample: https://github.com/100askTeam/esp-arduino-learn/blob/master/examples/08_integrated/01_lcd_sd_card_fc_joypad_fs_lv_lib_100ask/01_lcd_sd_card_fc_joypad_fs_lv_lib_100ask.ino
+# ESP32 E-Reader Project 
 
 ## Log Levels
 ```ini
@@ -20,3 +18,6 @@ To convert image use:
 - Use Image -> Mode -> Indexed with 256 colours and dithering if needed.
 - Export as a filename.bmp, the Advanced Options are greyed out.
 - Depending on purpose you might need to toggle color space info on/off.
+
+## TODO List
+- [ ] Intent concept: implement action handling and intent swith with LVGL
