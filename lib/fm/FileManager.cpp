@@ -292,11 +292,11 @@ void FileManager::readFile(const char *path)
 
     ESP_LOGI(TAG_FM, "Read from file:");
     while (file.available())
-    {
-        // TODO: Rewrite to log
+    {   
+        // ESP Log does not support pronting without new line, so writig to serial
         Serial.write(file.read());
     }
-    ESP_LOGI(TAG_FM, "");
+    ESP_LOGI(TAG_FM, "EOF");
     file.close();
 }
 
