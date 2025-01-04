@@ -14,8 +14,13 @@ int16_t Menu::getActiveItemIdx()
     return -1;
 }
 
-Menu::Menu(DBox& box, Set<MenuItem>& itemsSet) : AbstractModel(box), menuItems(itemsSet)
-{
+Menu::Menu(DBox& box, const char* title, Set<MenuItem>& itemsSet) : AbstractModel(box), menuItems(itemsSet)
+{   
+    menuTitle = nullptr;
+    if (title) {
+        menuTitle = new char[strlen(title) + 1];
+        strcpy(const_cast<char*>(menuTitle), title);
+    }
 }
 
 Set<MenuItem>& Menu::getItemsSet()

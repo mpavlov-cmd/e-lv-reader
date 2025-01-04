@@ -9,6 +9,7 @@
 struct Menu : public AbstractModel
 {
     private:
+        const char* menuTitle;
         Set<MenuItem> menuItems;
 
         /**
@@ -22,7 +23,17 @@ struct Menu : public AbstractModel
          * 
          * @param pre-built set of menu items
         */
-        Menu(DBox& box, Set<MenuItem>& itemsSet);
+        Menu(DBox& box, const char* title, Set<MenuItem>& itemsSet);
+        ~Menu() {
+            delete menuTitle;
+        }
+
+        /**
+         * @returns menu title 
+         */
+        const char* getTitle() {
+            return menuTitle;
+        }
 
         /**
          * @returns reference to the set stored in the menu class

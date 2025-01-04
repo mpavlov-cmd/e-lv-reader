@@ -5,10 +5,14 @@ IntentHome::IntentHome(ESP32Time &espTime, FileManager &fm) : espTime(espTime), 
 
 void IntentHome::onStartUp(IntentArgument arg)
 {
+	// Group shoud be created after vl_init() so calling manually
+	widgetGroup = lv_group_create();
+	lv_indev_set_group(get_lv_keypad(), widgetGroup);
+
 	// Draw image
-	lv_obj_t * img = lv_img_create(lv_scr_act());
-    lv_img_set_src(img, "S:/background/ninja_new_1_8bit.bmp");
-    lv_obj_center(img);
+	// lv_obj_t * img = lv_img_create(lv_scr_act());
+    // lv_img_set_src(img, "S:/background/ninja_new_1_8bit.bmp");
+    // lv_obj_center(img);
 
 	// Define menu items
 	Set<MenuItem> menuItems(10);
@@ -17,16 +21,15 @@ void IntentHome::onStartUp(IntentArgument arg)
 	menuItems.addItem(new MenuItem(INTENT_ID_FILE_SELECTOR, "Select Book", true));
 	menuItems.addItem(new MenuItem(2, "Settings"));
 	menuItems.addItem(new MenuItem(3, "Other"));
-	menuItems.addItem(new MenuItem(4, "One more item for fun"));
 	menuItems.addItem(new MenuItem(INTENT_ID_SLEEP, "Sleep"));
 
 	// Define Box and Menu
 	// TODO: Avoid allocat
-	menuBox = new DBox{48, 584, 384, 160, 0, 0};
-	menu = new Menu(*menuBox, menuItems);
+	menuBox = new DBox{48, 432, 384, 256, 0, 0};
+	menu = new Menu(*menuBox, "Main menu:", menuItems);
 
 	// Create widgets
-	widgetMenu = new WidgetMenu();
+	widgetMenu = new WidgetMenu(widgetGroup);
 	widgetMenu->upgrade(*menu);
 }
 
