@@ -34,7 +34,7 @@ SleepControl sleepControl(sleepCtrlConf);
 
 // Initialize Event Queue for MVC logc 
 volatile bool lvglTimerEnabled = true;
-QueueHandle_t eventQueue = xQueueCreate(32, sizeof(ActionArgument));; 
+QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));; 
 
 ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
@@ -68,7 +68,7 @@ void hal_setup(void)
     // Lunch intent mechaism
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
 
-    xTaskCreatePinnedToCore(eventQueueTask, "eventQueueTask", 4096, eventQueue, 1, nullptr, 0);
+    xTaskCreatePinnedToCore(eventQueueTask, "uiTask", 4096 * 2, eventQueue, 1, nullptr, 0);
     xTaskCreate(taskIntentFreq, "intentFreq", 4096, NULL, 1, &intentFreqHandle);
 }
 
@@ -76,9 +76,9 @@ void hal_loop(void)
 {
     // Make sure loop is not running togeter with acation
     if (lvglTimerEnabled) {
-        lv_timer_handler(); 
+        // lv_timer_handler(); 
     }
-    delay(5);
+    delay(1000);
 }
 
 void blink(void *pvParameters) {
@@ -110,7 +110,7 @@ void eventQueueTask(void *pvParameters)
     while (true)
     {
         // Wait indefinitely for an event
-        if (xQueueReceive(eventQueue, &actionArg, portMAX_DELAY) == pdPASS)
+        if (xQueueReceive(eventQueue, &actionArg, pdMS_TO_TICKS(5)) == pdPASS)
         {
             // Do not feed lvgl until event is processed
             lvglTimerEnabled = false;
@@ -125,6 +125,9 @@ void eventQueueTask(void *pvParameters)
 
             lvglTimerEnabled = true;
         }
+
+        // Update the UI
+        lv_timer_handler(); 
     }
 }
 
