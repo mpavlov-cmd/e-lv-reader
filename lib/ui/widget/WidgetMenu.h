@@ -57,6 +57,8 @@ private:
             MenuItem* currentItem = menuItems.getItem(i);
 
             lv_obj_t * btn = lv_list_add_btn(list, LV_SYMBOL_FILE, currentItem->getName());
+            
+            lv_obj_set_user_data(btn, currentItem);
             lv_group_add_obj(widgetGroup, btn);
             attachEventHandler(btn);
 

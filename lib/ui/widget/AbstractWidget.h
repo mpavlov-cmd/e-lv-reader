@@ -39,12 +39,6 @@ protected:
                 ESP_LOGW(TAG_WIDGT, "Failed to send event to queue");
             }
         }
-        
-        // Add custom event handling logic here
-        // if (code == LV_EVENT_CLICKED)
-        // {
-        //     ESP_LOGI(TAG_WIDGT, "Clicked event on object: %p", target);
-        // }
     }
 
     // Method to attach the event handler to an object

@@ -6,6 +6,7 @@
         "random": "cpp",
         "new": "cpp",
         "typeinfo": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "functional": "cpp"
     }
 }

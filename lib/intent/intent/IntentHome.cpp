@@ -30,6 +30,7 @@ void IntentHome::onStartUp(IntentArgument arg)
 	menu = new Menu(*menuBox, "Main menu:", menuItems);
 
 	// Create widgets
+	// TODO: Delete parent
 	lv_obj_t* menuParent = lv_obj_create(lv_scr_act());
 	set_lv_active_object(menuParent);
 
@@ -46,43 +47,20 @@ void IntentHome::onExit()
 {
 	ESP_LOGD(TAG_INTNT, "IntentHome::onExit");
 }
+
 ActionResult IntentHome::onAction(ActionArgument arg)
 {
-	// Handle up or down
-	// if (handleMenuNavigation(*menu, *widgetMenu, arg.actionBit)) {
-	// 	return ActionResult::VOID;
-	// }
+	// Ony handle click events
+	if (arg.code != LV_EVENT_CLICKED)
+	{
+		return ActionResult::VOID;
+	}
 
-	// // Anyting else
-	// if (arg.actionBit =! B00001000)
-	// {
-	// 	return ActionResult::VOID;
-	// }
+	ESP_LOGD(TAG_INTNT, "Clicked event on object: %p", arg.target);
+	MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
 
-	// Serial.println("--- Home Intent Enter Clicked ---");
-
-	// // Validate active item and menu id value
-	// if (menu->getActiveItem() == nullptr) {
-	// 	return ActionResult::VOID;
-	// }
-
-	// uint16_t menuItemId = menu->getActiveItem()->getId();
-	// if (menuItemId > UINT8_MAX) {
-	// 	return ActionResult::VOID;
-	// }
-
-	// // From main menu go to FS root
-	// IntentArgument fileSelectorFsRoot("/");
-
-	// switch (menuItemId)
-	// {
-	// case INTENT_ID_SLEEP:
-	// 	return {ActionRetultType::CHANGE_INTENT, INTENT_ID_SLEEP, IntentArgument::NO_ARG};
-	// case INTENT_ID_FILE_SELECTOR:
-	// 	return {ActionRetultType::CHANGE_INTENT, INTENT_ID_FILE_SELECTOR, fileSelectorFsRoot};
-	// default:
-	// 	return ActionResult::VOID;
-	// }	
+	// TODO: Handle click data
+	ESP_LOGD(TAG_INTNT, "Got user data from event. ID: %i, Name: %s", clicked->getId(), clicked->getName());
 	
 	return ActionResult::VOID;
 }
