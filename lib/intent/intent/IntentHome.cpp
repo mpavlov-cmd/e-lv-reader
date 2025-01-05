@@ -30,8 +30,7 @@ void IntentHome::onStartUp(IntentArgument arg)
 	menu = new Menu(*menuBox, "Main menu:", menuItems);
 
 	// Create widgets
-	// TODO: Delete parent
-	lv_obj_t* menuParent = lv_obj_create(lv_scr_act());
+	menuParent = lv_obj_create(lv_scr_act());
 	set_lv_active_object(menuParent);
 
 	widgetMenu = new WidgetMenu(widgetGroup, menuParent, eventQueue);
@@ -46,22 +45,42 @@ void IntentHome::onFrequncy()
 void IntentHome::onExit()
 {
 	ESP_LOGD(TAG_INTNT, "IntentHome::onExit");
+	set_lv_active_object(nullptr);
+	// lv_obj_clean(menuParent);
+	// lv_obj_del(menuParent);
 }
 
 ActionResult IntentHome::onAction(ActionArgument arg)
 {
 	// Ony handle click events
-	if (arg.code != LV_EVENT_CLICKED)
+	if (arg.code == LV_EVENT_CLICKED)
 	{
-		return ActionResult::VOID;
+		ESP_LOGD(TAG_INTNT, "Clicked menu item");
+		eventCounter = 0;
+		clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
 	}
 
-	ESP_LOGD(TAG_INTNT, "Clicked event on object: %p", arg.target);
-	MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
+	// LV_EVENT_DRAW_MAIN_END will be sent 4 times after clieck on menu
+	if (clicked != nullptr && arg.code == LV_EVENT_DRAW_POST_END )
+	{
+		eventCounter++;
+		ESP_LOGD(TAG_INTNT, "IntentHome::onAction LV_EVENT_DRAW_POST_END %i", eventCounter);
+	}
 
-	// TODO: Handle click data
-	ESP_LOGD(TAG_INTNT, "Got user data from event. ID: %i, Name: %s", clicked->getId(), clicked->getName());
-	
+	if (clicked != nullptr && eventCounter == 4) {
+		ESP_LOGD(TAG_INTNT, "Got user data from event. ID: %i, Name: %s", clicked->getId(), clicked->getName());
+		
+		if (clicked->getId() == INTENT_ID_SLEEP) {
+			lv_obj_del(menuParent);
+			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_SLEEP, IntentArgument::NO_ARG};
+		}
+
+		eventCounter = 0;
+		clicked = nullptr;
+	}
+	// ESP_LOGD(TAG_INTNT, "Clicked event on object: %p", arg.target);
+	// MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
+
 	return ActionResult::VOID;
 }
 

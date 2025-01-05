@@ -15,17 +15,25 @@
 #include "drvfs/Driver_Arduino_FS.h"
 
 #include "PinDefinitions.h"
+#include "SleepControl.h"
 #include "FileManager.h"
 #include "AbstractIntent.h"
 #include "intent/IntentHome.h"
+#include "intent/IntentSleep.h"
 
 // Function definitions
 void blink(void* pvParameters);
 void taskIntentFreq(void* pvParameters);
 void eventQueueTask(void* pvParameters);
+void buildIntent(uint8_t intentId);
+void switchIntent(uint8_t intentId, IntentArgument intentArgument);
 
 // Variable definitions
+SleepControlConf sleepCtrlConf = {GPIO_SEL_34 | GPIO_SEL_36 | GPIO_SEL_39, ESP_EXT1_WAKEUP_ALL_LOW};
+SleepControl sleepControl(sleepCtrlConf);
+
 // Initialize Event Queue for MVC logc 
+SemaphoreHandle_t semaphoreHandle;
 QueueHandle_t eventQueue = xQueueCreate(10, sizeof(ActionArgument));; 
 
 ESP32Time rtc(0);
@@ -37,7 +45,12 @@ AbstractIntent* intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
 
 void hal_setup(void)
 {
+
+    semaphoreHandle = xSemaphoreCreateBinary();
+	xSemaphoreGive(semaphoreHandle);
+
     xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
+    sleepControl.configureExt1WakeUp();
 
     // SPI
     // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
@@ -58,15 +71,17 @@ void hal_setup(void)
     // Lunch intent mechaism
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
 
-    xTaskCreate(eventQueueTask, "eventQueueTask", 2048, eventQueue, 1, nullptr);
+    xTaskCreatePinnedToCore(eventQueueTask, "eventQueueTask", 4096, eventQueue, 1, nullptr, 0);
     xTaskCreate(taskIntentFreq, "intentFreq", 4096, NULL, 1, &intentFreqHandle);
 }
 
 void hal_loop(void)
 {
-    // Update the UI
+    // Make sure loop is not running togeter with acation
+    // xSemaphoreTake(semaphoreHandle, portMAX_DELAY);
     lv_timer_handler(); 
     delay(5);
+    // xSemaphoreGive(semaphoreHandle);
 }
 
 void blink(void *pvParameters) {
@@ -99,9 +114,48 @@ void eventQueueTask(void *pvParameters)
         if (xQueueReceive(eventQueue, &actionArg, portMAX_DELAY) == pdPASS)
         {
             // ESP_LOGD(TAG_MAIN, "Received event: target=%p, code=%d", actionArg.target, actionArg.code);
-            intentCurrent->onAction(actionArg);
+            ActionResult result = intentCurrent->onAction(actionArg);
+
+            if (result.type == ActionRetultType::CHANGE_INTENT) {
+                // xSemaphoreTake(semaphoreHandle, portMAX_DELAY);
+                ESP_LOGD(TAG_MAIN, "Change intent action fired with id: %i", result.id);
+                switchIntent(result.id, result.data);
+                // xSemaphoreGive(semaphoreHandle);
+		    }
         }
     }
+}
+
+void buildIntent(uint8_t intentId)
+{
+	switch (intentId)
+	{
+	case INTENT_ID_HOME:
+		intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
+		break;
+	// case INTENT_ID_FILE_SELECTOR:
+	// 	intentCurrent = new IntentFileSelector(display, fileManager);
+	// 	break;
+	case INTENT_ID_SLEEP:
+		intentCurrent = new IntentSleep(eventQueue, sleepControl);
+		break;
+	// case INTENT_ID_BOOK:
+	// 	intentCurrent = new IntentBook(display, semaphoreHandle, textIndex, fileManager);
+	// 	break;
+	default:
+		intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
+		break;
+	}
+}
+
+void switchIntent(uint8_t intentId, IntentArgument intentArgument)
+{
+    intentCurrent->onExit();
+	delete intentCurrent;
+
+	// Init new intent based on the id under the hood will assign new intent to intent current
+	buildIntent(intentId);
+	intentCurrent->onStartUp(intentArgument);
 }
 
 // To be moved:

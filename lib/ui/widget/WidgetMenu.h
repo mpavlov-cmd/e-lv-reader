@@ -13,10 +13,10 @@ public:
 
     ~WidgetMenu() override {
         ESP_LOGD(TAG_WIDGT, "Menu widget destructor start");
-        if (list != nullptr) {
+        if (lv_obj_is_valid(list)) {
             lv_obj_del(list);
-            lv_style_reset(&style_font24);
         }
+        lv_style_reset(&style_font24);
         ESP_LOGD(TAG_WIDGT, "Menu widget destructor start");
     }
 

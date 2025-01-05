@@ -33,5 +33,5 @@ esp_sleep_wakeup_cause_t SleepControl::getWarkeupCause()
 void SleepControl::configureExt1WakeUp()
 {
     extWakeUpConfResult = esp_sleep_enable_ext1_wakeup(config.gpioMask, config.mode);
-    ESP_LOGD(TAG_POWER, "Ext1 wakeup configured: %i", extWakeUpConfResult);
+    ESP_LOGI(TAG_POWER, "Ext1 wakeup configured: %i", extWakeUpConfResult);
 }

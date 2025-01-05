@@ -16,9 +16,13 @@
 struct IntentHome : public AbstractIntent
 {
     private:
+        uint8_t eventCounter = 0;
+        MenuItem* clicked = nullptr;
+
         ESP32Time& espTime;
         FileManager& fileManager;
 
+        lv_obj_t* menuParent = nullptr;
         WidgetMenu* widgetMenu = nullptr;
 
         // Main menu and clock models

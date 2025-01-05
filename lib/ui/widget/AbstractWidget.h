@@ -64,7 +64,7 @@ public:
     virtual ~AbstractWidget()
     {
         ESP_LOGD(TAG_WIDGT, "Abstract widget destructor start");
-        if (parent != nullptr)
+        if (lv_obj_is_valid(parent))
         {
             lv_obj_del(parent);
         }
