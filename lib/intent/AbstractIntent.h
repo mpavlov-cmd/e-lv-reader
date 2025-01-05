@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <IntentArgument.h>
+#include <ActionArgument.h>
 #include "lvgl.h"
 #include "drvlvgl/Driver_Input_Keypad.h"
 
@@ -18,16 +19,12 @@ struct ActionResult {
     IntentArgument data;
 };
 
-struct ActionArgument {
-    uint8_t actionBit;
-    bool held;
-};
-
 struct AbstractIntent {
 
     protected:
         // Intialized on stratup
         lv_group_t* widgetGroup;
+        QueueHandle_t& eventQueue;
 
     public:
         virtual void onStartUp(IntentArgument) = 0;
@@ -37,7 +34,7 @@ struct AbstractIntent {
         virtual ActionResult onAction(ActionArgument) = 0;
         virtual uint8_t getId() = 0;
 
-        AbstractIntent();
+        AbstractIntent(QueueHandle_t& mEventQueue);
         virtual ~AbstractIntent() {
             if (widgetGroup != nullptr) {
                 lv_group_del(widgetGroup);

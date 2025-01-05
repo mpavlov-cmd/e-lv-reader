@@ -30,7 +30,7 @@ struct IntentHome : public AbstractIntent
         // Constant declaration
         static constexpr const uint8_t ID = INTENT_ID_HOME;
 
-        IntentHome(ESP32Time& espTime, FileManager& fm);
+        IntentHome(QueueHandle_t& mEventQueue, ESP32Time& espTime, FileManager& fm);
 
         void onStartUp(IntentArgument arg) override;
         void onFrequncy() override;

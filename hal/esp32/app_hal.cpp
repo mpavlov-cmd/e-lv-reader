@@ -22,13 +22,17 @@
 // Function definitions
 void blink(void* pvParameters);
 void taskIntentFreq(void* pvParameters);
+void eventQueueTask(void* pvParameters);
 
 // Variable definitions
+// Initialize Event Queue for MVC logc 
+QueueHandle_t eventQueue = xQueueCreate(10, sizeof(ActionArgument));; 
+
 ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
 
 TaskHandle_t intentFreqHandle = NULL;
-AbstractIntent* intentCurrent = new IntentHome(rtc, fileManager);
+AbstractIntent* intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
 
 
 void hal_setup(void)
@@ -50,9 +54,11 @@ void hal_setup(void)
     // Init lv file system 
     lv_arduino_fs_init();
 
+
     // Lunch intent mechaism
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
 
+    xTaskCreate(eventQueueTask, "eventQueueTask", 2048, eventQueue, 1, nullptr);
     xTaskCreate(taskIntentFreq, "intentFreq", 4096, NULL, 1, &intentFreqHandle);
 }
 
@@ -80,6 +86,22 @@ void taskIntentFreq(void *pvParameters)
 		intentCurrent->onFrequncy();
 		vTaskDelay(10000 / portTICK_RATE_MS);
 	}
+}
+
+void eventQueueTask(void *pvParameters)
+{
+    QueueHandle_t eventQueue = static_cast<QueueHandle_t>(pvParameters);
+    ActionArgument actionArg;
+
+    while (true)
+    {
+        // Wait indefinitely for an event
+        if (xQueueReceive(eventQueue, &actionArg, portMAX_DELAY) == pdPASS)
+        {
+            // ESP_LOGD(TAG_MAIN, "Received event: target=%p, code=%d", actionArg.target, actionArg.code);
+            intentCurrent->onAction(actionArg);
+        }
+    }
 }
 
 // To be moved:

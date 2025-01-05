@@ -8,7 +8,9 @@ class WidgetMenu : public AbstractWidget<Menu>
 {
 
 public:
-    WidgetMenu(lv_group_t* wGroup) : AbstractWidget(wGroup) {}
+    WidgetMenu(lv_group_t* wGroup, lv_obj_t* mParent, QueueHandle_t& mEventQueue) 
+        : AbstractWidget(wGroup, mParent, mEventQueue) {}
+
     ~WidgetMenu() override {
         ESP_LOGD(TAG_WIDGT, "Menu widget destructor start");
         if (list != nullptr) {
@@ -56,10 +58,8 @@ private:
 
             lv_obj_t * btn = lv_list_add_btn(list, LV_SYMBOL_FILE, currentItem->getName());
             lv_group_add_obj(widgetGroup, btn);
+            attachEventHandler(btn);
 
-            // TODO: add event handler
-            // btn->user_data = 
-            // lv_obj_add_event_cb(btn1, event_handler, LV_EVENT_CLICKED, NULL);
             if (i == 0) {
                 lv_obj_add_state(btn, LV_STATE_CHECKED);
             }

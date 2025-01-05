@@ -1,7 +1,8 @@
 #include "IntentHome.h"
 #include "lvgl.h"
 
-IntentHome::IntentHome(ESP32Time &espTime, FileManager &fm) : espTime(espTime), fileManager(fm) {}
+IntentHome::IntentHome(QueueHandle_t& mEventQueue, ESP32Time &espTime, FileManager &fm) :
+AbstractIntent(mEventQueue), espTime(espTime), fileManager(fm) {}
 
 void IntentHome::onStartUp(IntentArgument arg)
 {
@@ -29,7 +30,10 @@ void IntentHome::onStartUp(IntentArgument arg)
 	menu = new Menu(*menuBox, "Main menu:", menuItems);
 
 	// Create widgets
-	widgetMenu = new WidgetMenu(widgetGroup);
+	lv_obj_t* menuParent = lv_obj_create(lv_scr_act());
+	set_lv_active_object(menuParent);
+
+	widgetMenu = new WidgetMenu(widgetGroup, menuParent, eventQueue);
 	widgetMenu->upgrade(*menu);
 }
 

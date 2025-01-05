@@ -18,7 +18,9 @@ volatile unsigned long isrStartedAt = 0;
 
 // Input control
 static lv_indev_drv_t indev_drv;
-static lv_indev_t * indev_keypad;
+
+static lv_indev_t* indev_keypad;
+static lv_obj_t*   active_object;  
 
 SwithInputHandler inputHandler(BT_INPUT_2, BT_INPUT_1, BT_INPUT_0);
 
@@ -32,6 +34,11 @@ void lv_joystick_indev_init(void)
     indev_keypad      = lv_indev_drv_register(&indev_drv);
 
     inputHandler.configure(isr, 100, 2500);
+}
+
+void set_lv_active_object(lv_obj_t *object)
+{
+    active_object = object;
 }
 
 lv_indev_t* get_lv_keypad(void)
@@ -59,8 +66,9 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 
         ESP_LOGD(TAG_INPUT, "Button Pressed");
 
-        // TODO: This is working, but resouce consuming, due to the entire screen redraw. Optimize
-        lv_obj_invalidate(lv_scr_act());
+        // TODO: Come up with better optimization
+        lv_obj_t* to_invalidate = active_object == nullptr ? lv_scr_act() : active_object;
+        lv_obj_invalidate(to_invalidate);
 
         // Mark btn as pressed 
         data->state = LV_INDEV_STATE_PRESSED;

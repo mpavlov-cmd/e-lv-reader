@@ -5,6 +5,7 @@
         "string_view": "cpp",
         "random": "cpp",
         "new": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "system_error": "cpp"
     }
 }
