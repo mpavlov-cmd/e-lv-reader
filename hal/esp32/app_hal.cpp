@@ -33,8 +33,8 @@ SleepControlConf sleepCtrlConf = {GPIO_SEL_34 | GPIO_SEL_36 | GPIO_SEL_39, ESP_E
 SleepControl sleepControl(sleepCtrlConf);
 
 // Initialize Event Queue for MVC logc 
-SemaphoreHandle_t semaphoreHandle;
-QueueHandle_t eventQueue = xQueueCreate(10, sizeof(ActionArgument));; 
+volatile bool lvglTimerEnabled = true;
+QueueHandle_t eventQueue = xQueueCreate(32, sizeof(ActionArgument));; 
 
 ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
@@ -45,9 +45,6 @@ AbstractIntent* intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
 
 void hal_setup(void)
 {
-
-    semaphoreHandle = xSemaphoreCreateBinary();
-	xSemaphoreGive(semaphoreHandle);
 
     xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
     sleepControl.configureExt1WakeUp();
@@ -78,10 +75,10 @@ void hal_setup(void)
 void hal_loop(void)
 {
     // Make sure loop is not running togeter with acation
-    // xSemaphoreTake(semaphoreHandle, portMAX_DELAY);
-    lv_timer_handler(); 
+    if (lvglTimerEnabled) {
+        lv_timer_handler(); 
+    }
     delay(5);
-    // xSemaphoreGive(semaphoreHandle);
 }
 
 void blink(void *pvParameters) {
@@ -98,7 +95,9 @@ void blink(void *pvParameters) {
 void taskIntentFreq(void *pvParameters)
 {
     for(;;) {
+        lvglTimerEnabled = false;
 		intentCurrent->onFrequncy();
+        lvglTimerEnabled = true;
 		vTaskDelay(10000 / portTICK_RATE_MS);
 	}
 }
@@ -113,15 +112,18 @@ void eventQueueTask(void *pvParameters)
         // Wait indefinitely for an event
         if (xQueueReceive(eventQueue, &actionArg, portMAX_DELAY) == pdPASS)
         {
+            // Do not feed lvgl until event is processed
+            lvglTimerEnabled = false;
+
             // ESP_LOGD(TAG_MAIN, "Received event: target=%p, code=%d", actionArg.target, actionArg.code);
             ActionResult result = intentCurrent->onAction(actionArg);
 
             if (result.type == ActionRetultType::CHANGE_INTENT) {
-                // xSemaphoreTake(semaphoreHandle, portMAX_DELAY);
                 ESP_LOGD(TAG_MAIN, "Change intent action fired with id: %i", result.id);
                 switchIntent(result.id, result.data);
-                // xSemaphoreGive(semaphoreHandle);
 		    }
+
+            lvglTimerEnabled = true;
         }
     }
 }

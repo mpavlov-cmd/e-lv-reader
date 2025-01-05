@@ -17,7 +17,7 @@ public:
             lv_obj_del(list);
         }
         lv_style_reset(&style_font24);
-        ESP_LOGD(TAG_WIDGT, "Menu widget destructor start");
+        ESP_LOGD(TAG_WIDGT, "Menu widget destructor end");
     }
 
 private:

@@ -48,6 +48,9 @@ struct IntentHome : public AbstractIntent
             delete menu;
             delete menuBox;
             delete widgetMenu;
+            if (lv_obj_is_valid(menuParent)) {
+    			lv_obj_del(menuParent);
+            }
             ESP_LOGD(TAG_INTNT, "IntentHome Destructor End");
         };
 };
