@@ -33,6 +33,7 @@ static lv_disp_t* disp;
 
 // TODO: Figure out why moving this counter causes MCU boot failure
 uint16_t chunkCounter = 0;
+bool forceDispRefresh = false;
 
 /**
  * Requires SPI to be initialized 
@@ -84,6 +85,11 @@ void lv_epd_disp_init(void)
     esp_timer_handle_t tick_timer;
     esp_timer_create(&tick_timer_args, &tick_timer);
     esp_timer_start_periodic(tick_timer, 1000); // 1ms interval
+}
+
+void lv_epd_mark_full(void)
+{
+    forceDispRefresh = true;
 }
 
 // Display flushing 
@@ -161,8 +167,11 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
     if (chunkCounter == 0)
     {
         ESP_LOGD(TAG_DISPL, "--- Initial Update ---");
-    //     EPD_HW_Init_Fast();
-    //     EPD_SetRAMValue_BaseMap(gImageBlank);
+        if (forceDispRefresh) {
+            EPD_HW_Init_Fast();
+            EPD_SetRAMValue_BaseMap(gImageBlank);
+            forceDispRefresh = false;
+        }
     }
 
     ESP_LOGD(TAG_DISPL, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);

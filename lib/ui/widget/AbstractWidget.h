@@ -19,8 +19,9 @@ protected:
 
     DBox box;
 
-    // lvgl parent object
+    // lvgl parent object and style
     lv_obj_t* parent;
+    lv_style_t style;
 
     // Common event handler
     static void eventHandler(lv_event_t *event)
@@ -70,6 +71,7 @@ public:
         {
             lv_obj_del(parent);
         }
+        lv_style_reset(&style);
         ESP_LOGD(TAG_WIDGT, "Abstract widget destructor end");
     }
 
@@ -88,6 +90,14 @@ public:
 
             lv_obj_set_size(parent, box.width, box.height);
             lv_obj_set_pos(parent, box.x, box.y);
+
+            lv_style_init(&style);
+            lv_style_set_border_width(&style, box.border);
+            lv_style_set_border_color(&style, lv_color_make(0x00, 0x00, 0x00));
+            lv_style_set_border_opa(&style, LV_OPA_COVER);
+            lv_style_set_pad_all(&style, box.padding);    
+
+            lv_obj_add_style(parent, &style, LV_PART_MAIN);
 
             initialize(widgetData);
             initialized = true;

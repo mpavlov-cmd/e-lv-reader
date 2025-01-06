@@ -5,16 +5,20 @@
 #include <IntentIdentifier.h>
 #include <SleepControl.h>
 #include <PinDefinitions.h>
-#include <model/DPosition.h>
+#include <widget/WidgetText.h>
+#include <model/text/ModelText.h>
 
 struct IntentSleep : public AbstractIntent
 {
 
 private: 
     SleepControl& sleepControl;
+    bool sleepPrepared = false;
+    bool imageDrawn    = false;
 
-    // WidgetImage* widgetImage = nullptr;
-    // ImageModel imgModel;
+    WidgetText* widgetText = nullptr;
+    ModelText* modelText = nullptr;
+    DBox* textBox = nullptr;
 
 public:
     // Constant declaration
@@ -23,7 +27,9 @@ public:
     IntentSleep(QueueHandle_t& mEventQueue, SleepControl &sleepControl);
     ~IntentSleep()
     {
-        //delete widgetImage;
+        delete widgetText;
+        delete modelText;
+        delete textBox;
     }
 
     void onStartUp(IntentArgument arg) override;

@@ -25,7 +25,7 @@ void IntentHome::onStartUp(IntentArgument arg)
 	menuItems.addItem(new MenuItem(INTENT_ID_SLEEP, "Sleep", LV_SYMBOL_EYE_CLOSE));
 
 	// Define Box and Menu
-	menuBox = new DBox{48, 432, 384, 256, 10, 5};
+	menuBox = new DBox{48, 432, 384, 256, 12, 5};
 	menu = new Menu(*menuBox, "Main menu:", menuItems);
 
 	// Create widgets

@@ -8,7 +8,6 @@
 
 struct ModelText {
     DBox box;
-    DPosition position;
     String text;
 };
 

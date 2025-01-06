@@ -32,20 +32,17 @@ private:
     void initialize(Menu& widgetData) override {
 
         list = lv_list_create(parent);
-        // TODO: Take padding into consideratio
+
         lv_obj_set_size(list, box.width, box.height);
         lv_obj_center(list);
 
         // Create a style for menu
         lv_style_init(&style_font24);
         lv_style_set_text_font(&style_font24, &lv_font_montserrat_24); 
-
-        lv_style_set_border_width(&style_font24, box.border);
-        lv_style_set_border_color(&style_font24, lv_color_make(0x00, 0x00, 0x00)); // Red color
-        lv_style_set_border_opa(&style_font24, LV_OPA_COVER);
-
-        lv_style_set_pad_top(&style_font24, box.padding);    // Top padding
-        lv_style_set_pad_bottom(&style_font24, box.padding); // Bottom padding
+        
+        // TODO: Figure out why padding is not applied from the parent box
+        lv_style_set_pad_top(&style_font24, box.padding);    
+        lv_style_set_pad_bottom(&style_font24, box.padding);
 
         lv_obj_add_style(list, &style_font24, LV_PART_MAIN); 
     }

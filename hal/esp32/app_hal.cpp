@@ -134,6 +134,8 @@ void eventQueueTask(void *pvParameters)
 
             if (result.type == ActionRetultType::CHANGE_INTENT) {
                 ESP_LOGD(TAG_MAIN, "Change intent action fired with id: %i", result.id);
+                // Force full refresh on change intent
+                lv_epd_mark_full();
                 switchIntent(result.id, result.data);
 		    }
 
