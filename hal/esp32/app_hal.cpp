@@ -34,7 +34,8 @@ SleepControl sleepControl(sleepCtrlConf);
 
 // Initialize Event Queue for MVC logc 
 volatile bool lvglTimerEnabled = true;
-QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));; 
+QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));
+QueueHandle_t freqencyQueue = xQueueCreate(1, sizeof(uint8_t));; 
 
 ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
@@ -67,8 +68,9 @@ void hal_setup(void)
     // Lunch intent mechaism
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
 
-    xTaskCreatePinnedToCore(eventQueueTask, "uiTask", 4096 * 2, eventQueue, 1, nullptr, 0);
-    xTaskCreate(taskIntentFreq, "intentFreq", 4096, NULL, 1, &intentFreqHandle);
+    void *queues[2] = { eventQueue, freqencyQueue };
+    xTaskCreate(eventQueueTask, "uiTask", 4096 * 2, queues, 1, nullptr);
+    xTaskCreate(taskIntentFreq, "intentFreq", 2048, freqencyQueue, 1, &intentFreqHandle);
 }
 
 void hal_loop(void)
@@ -90,29 +92,45 @@ void blink(void *pvParameters) {
 
 void taskIntentFreq(void *pvParameters)
 {
+    QueueHandle_t queue = static_cast<QueueHandle_t>(pvParameters);
+    uint8_t one = 1;
+
     for(;;) {
-        lvglTimerEnabled = false;
-		intentCurrent->onFrequncy();
-        lvglTimerEnabled = true;
-		vTaskDelay(10000 / portTICK_RATE_MS);
+        if (xQueueSend(queue, &one, pdMS_TO_TICKS(10)) != pdPASS)
+        {
+            ESP_LOGV(TAG_MAIN, "Failed to send event to frequency queue");
+        }
+		vTaskDelay(1000 / portTICK_RATE_MS);
 	}
 }
 
 void eventQueueTask(void *pvParameters)
 {
-    QueueHandle_t eventQueue = static_cast<QueueHandle_t>(pvParameters);
-    ActionArgument actionArg;
+    // Get queues
+    void **queues = (void **)pvParameters;
+
+    QueueHandle_t eventQueue = (QueueHandle_t)queues[0];
+    QueueHandle_t freqencyQueue = (QueueHandle_t)queues[1];
+
+    ActionArgument actionArgument;
+    uint8_t frequencyArgment;
 
     while (true)
     {
-        // Wait indefinitely for an event
-        if (xQueueReceive(eventQueue, &actionArg, pdMS_TO_TICKS(5)) == pdPASS)
+        // Wait to get item from frequency producer
+        if (xQueueReceive(freqencyQueue, &frequencyArgment, pdMS_TO_TICKS(5)) == pdPASS) {
+            ESP_LOGD(TAG_MAIN, "Executing inetent frequency task");
+            intentCurrent->onFrequncy();
+        }
+
+        // Check if actions were prformed
+        if (xQueueReceive(eventQueue, &actionArgument, pdMS_TO_TICKS(5)) == pdPASS)
         {
             // Do not feed lvgl until event is processed
             lvglTimerEnabled = false;
 
             // ESP_LOGD(TAG_MAIN, "Received event: target=%p, code=%d", actionArg.target, actionArg.code);
-            ActionResult result = intentCurrent->onAction(actionArg);
+            ActionResult result = intentCurrent->onAction(actionArgument);
 
             if (result.type == ActionRetultType::CHANGE_INTENT) {
                 ESP_LOGD(TAG_MAIN, "Change intent action fired with id: %i", result.id);

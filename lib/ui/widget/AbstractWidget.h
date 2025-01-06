@@ -36,7 +36,7 @@ protected:
             ActionArgument argumnet = {target, code};
             if (xQueueSend(widget->eventQueue, &argumnet, pdMS_TO_TICKS(10)) != pdPASS)
             {
-                ESP_LOGW(TAG_WIDGT, "Failed to send event to queue");
+                ESP_LOGE(TAG_WIDGT, "Failed to send event to ui queue");
             }
         }
     }
