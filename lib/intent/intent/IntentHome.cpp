@@ -6,14 +6,10 @@ AbstractIntent(mEventQueue), espTime(espTime), fileManager(fm) {}
 
 void IntentHome::onStartUp(IntentArgument arg)
 {
-	// Group shoud be created after vl_init() so calling manually
+	// TODO: Duplicate code move to abstract intent
+    // Group shoud be created after lv_init() so calling manually
 	widgetGroup = lv_group_create();
 	lv_indev_set_group(get_lv_keypad(), widgetGroup);
-
-	// Draw image
-	// lv_obj_t * img = lv_img_create(lv_scr_act());
-    // lv_img_set_src(img, "S:/background/ninja_new_1_8bit.bmp");
-    // lv_obj_center(img);
 
 	// Define menu items
 	Set<MenuItem> menuItems(10);
@@ -55,11 +51,16 @@ ActionResult IntentHome::onAction(ActionArgument arg)
 	if (arg.code == LV_EVENT_CLICKED)
 	{
 		MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
-
 		ESP_LOGD(TAG_INTNT, "Got user data from event. ID: %i, Name: %s", clicked->getId(), clicked->getName());
 		
 		if (clicked->getId() == INTENT_ID_SLEEP) {
 			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_SLEEP, IntentArgument::NO_ARG};
+		}
+
+		if (clicked->getId() == INTENT_ID_FILE_SELECTOR) {
+			// From main menu go to FS root
+			IntentArgument fsRoot("/");
+			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_FILE_SELECTOR, fsRoot};
 		}
 	}
 

@@ -1,6 +1,7 @@
 #include "Driver_Display_EPD.h"
 
 #include <Arduino.h>
+#include <SPI.h>
 #include "lvgl.h"
 #include "LogTags.h"
 #include "esp_log.h"
@@ -105,6 +106,7 @@ void lv_epd_mark_full(void)
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     ESP_LOGD(TAG_DISPL, "--- Flush Start ---");
+    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 
     int width = lv_area_get_width(area);
     int height = lv_area_get_height(area);
@@ -187,6 +189,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
     }
     
     // Anyway tell lgvl that display is ready
+    SPI.endTransaction();
     lv_disp_flush_ready(disp_drv); /* tell lvgl that flushing is done */
 }
 

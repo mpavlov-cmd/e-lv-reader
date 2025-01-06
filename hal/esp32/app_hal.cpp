@@ -9,6 +9,7 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_task_wdt.h"
 
 #include "drvlvgl/Driver_Display_EPD.h"
 #include "drvlvgl/Driver_Input_Keypad.h"
@@ -20,6 +21,7 @@
 #include "AbstractIntent.h"
 #include "intent/IntentHome.h"
 #include "intent/IntentSleep.h"
+#include "intent/IntentFileSelector.h"
 
 // Function definitions
 void blink(void* pvParameters);
@@ -46,6 +48,9 @@ AbstractIntent* intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
 
 void hal_setup(void)
 {
+    // TODO: Change for concrete tasks, not global
+    // Init and configure wdt with timeot seconds and panic flag
+	esp_task_wdt_init(60, false);
 
     xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
     sleepControl.configureExt1WakeUp();
@@ -154,9 +159,9 @@ void buildIntent(uint8_t intentId)
 	case INTENT_ID_HOME:
 		intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
 		break;
-	// case INTENT_ID_FILE_SELECTOR:
-	// 	intentCurrent = new IntentFileSelector(display, fileManager);
-	// 	break;
+	case INTENT_ID_FILE_SELECTOR:
+		intentCurrent = new IntentFileSelector(eventQueue, fileManager);
+		break;
 	case INTENT_ID_SLEEP:
 		intentCurrent = new IntentSleep(eventQueue, sleepControl);
 		break;
