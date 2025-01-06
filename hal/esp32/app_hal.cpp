@@ -64,7 +64,6 @@ void hal_setup(void)
     // Init lv file system 
     lv_arduino_fs_init();
 
-
     // Lunch intent mechaism
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
 
@@ -74,10 +73,7 @@ void hal_setup(void)
 
 void hal_loop(void)
 {
-    // Make sure loop is not running togeter with acation
-    if (lvglTimerEnabled) {
-        // lv_timer_handler(); 
-    }
+    ESP_LOGV(TAG_MAIN, "Hello from loop");
     delay(1000);
 }
 

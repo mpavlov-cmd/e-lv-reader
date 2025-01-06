@@ -53,13 +53,15 @@ private:
 
     virtual DBox createBox(T &widgetData) = 0;
     virtual void initialize(T &widgetData) = 0;
-    virtual void beforePrint(T &widgetData) = 0;
     virtual void print(T &widgetData) = 0;
-    virtual void afterPrint(T &widgetData) = 0;
 
 public:
+    // Primary 
     AbstractWidget(lv_group_t *wGroup, lv_obj_t* mParent, QueueHandle_t& mEventQueue) : 
-        widgetGroup(wGroup), parent(mParent), eventQueue(mEventQueue), box(DBox()) {};
+        widgetGroup(wGroup), parent(mParent), eventQueue(mEventQueue), box(DBox::EMPTY) {};
+
+    AbstractWidget(lv_group_t *wGroup, QueueHandle_t& mEventQueue) : 
+        AbstractWidget(wGroup, nullptr, mEventQueue) {};
 
     virtual ~AbstractWidget()
     {
@@ -73,7 +75,6 @@ public:
 
     void upgrade(T &widgetData)
     {
-
         if (!initialized)
         {
             ESP_LOGD(TAG_WIDGT, "Initializing widget");
@@ -92,9 +93,7 @@ public:
             initialized = true;
         }
 
-        beforePrint(widgetData);
         print(widgetData);
-        afterPrint(widgetData);
     }
 };
 

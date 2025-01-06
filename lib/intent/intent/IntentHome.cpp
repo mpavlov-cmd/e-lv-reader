@@ -19,14 +19,13 @@ void IntentHome::onStartUp(IntentArgument arg)
 	Set<MenuItem> menuItems(10);
 
 	// Main menu. For simplifity menu ID here MUST match intent ID
-	menuItems.addItem(new MenuItem(INTENT_ID_FILE_SELECTOR, "Select Book", true));
-	menuItems.addItem(new MenuItem(2, "Settings"));
-	menuItems.addItem(new MenuItem(3, "Other"));
-	menuItems.addItem(new MenuItem(INTENT_ID_SLEEP, "Sleep"));
+	menuItems.addItem(new MenuItem(INTENT_ID_FILE_SELECTOR, "Select Book", LV_SYMBOL_FILE, true));
+	menuItems.addItem(new MenuItem(2, "Settings", LV_SYMBOL_SETTINGS));
+	menuItems.addItem(new MenuItem(3, "Other", nullptr));
+	menuItems.addItem(new MenuItem(INTENT_ID_SLEEP, "Sleep", LV_SYMBOL_EYE_CLOSE));
 
 	// Define Box and Menu
-	// TODO: Avoid allocat
-	menuBox = new DBox{48, 432, 384, 256, 0, 0};
+	menuBox = new DBox{48, 432, 384, 256, 10, 5};
 	menu = new Menu(*menuBox, "Main menu:", menuItems);
 
 	// Create widgets
@@ -45,42 +44,24 @@ void IntentHome::onFrequncy()
 void IntentHome::onExit()
 {
 	ESP_LOGD(TAG_INTNT, "IntentHome::onExit");
+	// Remove optimztion: set objet to null
 	set_lv_active_object(nullptr);
-	// lv_obj_clean(menuParent);
-	// lv_obj_del(menuParent);
 }
 
 ActionResult IntentHome::onAction(ActionArgument arg)
 {
 	// ESP_LOGD(TAG_INTNT, "IntentHome::onAction EVENT  %i", arg.code);
-
 	// Ony handle click events
 	if (arg.code == LV_EVENT_CLICKED)
 	{
-		ESP_LOGD(TAG_INTNT, "Clicked menu item");
-		eventCounter = 0;
-		clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
-	}
+		MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
 
-	// LV_EVENT_DRAW_MAIN_END will be sent 4 times after clieck on menu
-	if (clicked != nullptr && arg.code == LV_EVENT_DRAW_POST_END)
-	{
-		// Display is still drawing
-		eventCounter++;
-	}
-
-	if (clicked != nullptr && eventCounter == 4) {
 		ESP_LOGD(TAG_INTNT, "Got user data from event. ID: %i, Name: %s", clicked->getId(), clicked->getName());
 		
 		if (clicked->getId() == INTENT_ID_SLEEP) {
 			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_SLEEP, IntentArgument::NO_ARG};
 		}
-
-		eventCounter = 0;
-		clicked = nullptr;
 	}
-	// ESP_LOGD(TAG_INTNT, "Clicked event on object: %p", arg.target);
-	// MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
 
 	return ActionResult::VOID;
 }

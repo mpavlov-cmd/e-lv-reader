@@ -16,8 +16,6 @@
 struct IntentHome : public AbstractIntent
 {
     private:
-        uint8_t eventCounter = 0;
-        MenuItem* clicked = nullptr;
 
         ESP32Time& espTime;
         FileManager& fileManager;
@@ -28,7 +26,6 @@ struct IntentHome : public AbstractIntent
         // Main menu and clock models
         Menu* menu = nullptr;
         DBox* menuBox = nullptr;
-
 
     public:
         // Constant declaration

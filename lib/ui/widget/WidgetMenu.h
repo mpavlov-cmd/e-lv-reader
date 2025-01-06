@@ -40,12 +40,14 @@ private:
         lv_style_init(&style_font24);
         lv_style_set_text_font(&style_font24, &lv_font_montserrat_24); 
 
+        lv_style_set_border_width(&style_font24, box.border);
+        lv_style_set_border_color(&style_font24, lv_color_make(0x00, 0x00, 0x00)); // Red color
+        lv_style_set_border_opa(&style_font24, LV_OPA_COVER);
+
+        lv_style_set_pad_top(&style_font24, box.padding);    // Top padding
+        lv_style_set_pad_bottom(&style_font24, box.padding); // Bottom padding
+
         lv_obj_add_style(list, &style_font24, LV_PART_MAIN); 
-        lv_obj_add_style(list, &style_font24, LV_PART_ITEMS);
-    }
-
-    void beforePrint(Menu& widgetData) override {
-
     }
 
     void print(Menu& widgetData) override
@@ -56,7 +58,7 @@ private:
         for (uint8_t i = 0; i < menuItems.size(); i++) {
             MenuItem* currentItem = menuItems.getItem(i);
 
-            lv_obj_t * btn = lv_list_add_btn(list, LV_SYMBOL_FILE, currentItem->getName());
+            lv_obj_t * btn = lv_list_add_btn(list, currentItem->getIcon(), currentItem->getName());
             
             lv_obj_set_user_data(btn, currentItem);
             lv_group_add_obj(widgetGroup, btn);
@@ -66,10 +68,6 @@ private:
                 lv_obj_add_state(btn, LV_STATE_CHECKED);
             }
         }
-    }
-
-    void afterPrint(Menu& widgetData) override {
-       
     }
 };
 
