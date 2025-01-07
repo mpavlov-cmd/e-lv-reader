@@ -1,3 +1,5 @@
+#ifndef PIO_UNIT_TESTING
+
 #include "lvgl.h"
 #include "app_hal.h"
 #include "esp_log.h"
@@ -20,7 +22,6 @@ void loop()
 	hal_loop();  
 }
 
-
 #else
 
 int main(void)
@@ -34,4 +35,5 @@ int main(void)
 	hal_loop();
 }
 
-#endif
+#endif // ARDUINO
+#endif // PIO_UNIT_TESTING

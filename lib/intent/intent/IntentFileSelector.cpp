@@ -65,7 +65,7 @@ void IntentFileSelector::onStartUp(IntentArgument arg)
 	widgetGroup = lv_group_create();
 	lv_indev_set_group(get_lv_keypad(), widgetGroup);
 
-    Serial.printf("Intent FileSelector On Startup Called with argument: %s\n", arg.strValue);
+    ESP_LOGD(TAG_INTNT, "Intent FileSelector On Startup Called with argument: %s", arg.strValue);
     const char* rootPath = arg.strValue == nullptr ? "/" : arg.strValue;
 
     prepareAndRnderDir(rootPath);
@@ -73,12 +73,12 @@ void IntentFileSelector::onStartUp(IntentArgument arg)
 
 void IntentFileSelector::onFrequncy()
 {
-    Serial.println("IntentFileSelector::onFrequncy");
+    ESP_LOGD(TAG_INTNT, "IntentFileSelector::onFrequncy");
 }
 
 void IntentFileSelector::onExit()
 {
-    Serial.println("IntentFileSelector::onExit");
+    ESP_LOGD(TAG_INTNT, "IntentFileSelector::onExit");
 }
 
 ActionResult IntentFileSelector::onAction(ActionArgument arg)

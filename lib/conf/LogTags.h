@@ -3,6 +3,7 @@
 
 // Define the default TAG
 #define TAG_MAIN  "MAIN"
+#define TAG_TEST  "TEST"
 #define TAG_DISPL "DISPDRV"
 #define TAG_INPUT "INPUT"
 #define TAG_FM    "FM"

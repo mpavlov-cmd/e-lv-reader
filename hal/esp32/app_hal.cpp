@@ -1,3 +1,4 @@
+#ifndef PIO_UNIT_TESTING
 
 #include "app_hal.h"
 #include "lvgl.h"
@@ -205,3 +206,5 @@ void create_black_square(lv_obj_t * parent) {
     // Apply the style to the rectangle
     lv_obj_add_style(rect, &style_black, 0);
 }
+
+#endif
