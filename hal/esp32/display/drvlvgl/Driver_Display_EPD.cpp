@@ -9,7 +9,6 @@
 #include "PinDefinitions.h"
 #include "drvspi/Display_EPD_W21_spi.h"
 #include "drvspi/Display_EPD_W21.h"
-#include "drvspi/Display_EPD_Buffer.h"
 
 // Function definitions
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
@@ -57,7 +56,7 @@ void lv_epd_disp_init(void)
     // Full screen refresh initialization.
     EPD_HW_Init_Fast();          
     // Set buffer for patia refresh
-    EPD_SetRAMValue_BaseMap(gImageBlank);
+    EPD_SetRAMValue_Empty_BaseMap();
 
     // EPD_WhiteScreen_White(); // Clear screen function.
     // EPD_DeepSleep();         // Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
@@ -167,7 +166,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
         ESP_LOGD(TAG_DISPL, "--- Initial Update ---");
         if (forceDispRefresh) {
             EPD_HW_Init_Fast();
-            EPD_SetRAMValue_BaseMap(gImageBlank);
+            EPD_SetRAMValue_Empty_BaseMap();
             forceDispRefresh = false;
         }
     }
@@ -241,7 +240,7 @@ void epd_flush_cb_new(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color
         ESP_LOGD(TAG_DISPL, "--- Initial Update ---");
         if (forceDispRefresh) {
             EPD_HW_Init_Fast();
-            EPD_SetRAMValue_BaseMap(gImageBlank);
+            EPD_SetRAMValue_Empty_BaseMap();
             forceDispRefresh = false;
         }
     }

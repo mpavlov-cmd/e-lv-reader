@@ -15,6 +15,7 @@ void EPD_DeepSleep(void);
 
 //Partial refresh display 
 void EPD_SetRAMValue_BaseMap(const unsigned char * datas);
+void EPD_SetRAMValue_Empty_BaseMap();
 void EPD_Dis_PartAll(const unsigned char * datas);
 void EPD_Dis_Part(
     unsigned int x_start,

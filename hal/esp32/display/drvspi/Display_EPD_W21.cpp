@@ -10,10 +10,28 @@ void EPD_SetRAMValue_BaseMap(const unsigned char *datas)
   {
     EPD_W21_WriteDATA(datas[i]);
   }
+
   EPD_W21_WriteCMD(0x26); // Write Black and White image to RAM
   for (i = 0; i < EPD_ARRAY; i++)
   {
     EPD_W21_WriteDATA(datas[i]);
+  }
+  EPD_Update();
+}
+
+void EPD_SetRAMValue_Empty_BaseMap()
+{
+  unsigned int i;
+  EPD_W21_WriteCMD(0x24); // Write Black and White image to RAM
+  for (i = 0; i < EPD_ARRAY; i++)
+  {
+    EPD_W21_WriteDATA(0xFF);
+  }
+  
+  EPD_W21_WriteCMD(0x26); // Write Black and White image to RAM
+  for (i = 0; i < EPD_ARRAY; i++)
+  {
+    EPD_W21_WriteDATA(0xFF);
   }
   EPD_Update();
 }
