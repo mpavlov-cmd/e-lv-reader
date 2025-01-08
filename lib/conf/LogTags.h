@@ -11,6 +11,7 @@
 #define TAG_POWER "PWR"
 #define TAG_WIDGT "WIDGET"
 #define TAG_INTNT "INETNT"
+#define TAG_INDEX "INDEX"
 
 
 #endif // LOG_TAGS_H

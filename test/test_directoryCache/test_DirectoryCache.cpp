@@ -1,5 +1,3 @@
-#define ENABLE_GxEPD2_GFX 1
-
 #include <unity.h>
 #include <esp_log.h>
 #include <LogTags.h>
