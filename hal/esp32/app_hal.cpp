@@ -31,6 +31,9 @@ void eventQueueTask(void* pvParameters);
 void buildIntent(uint8_t intentId);
 void switchIntent(uint8_t intentId, IntentArgument intentArgument);
 
+// TODO: For screen testing purp
+void create_black_square(lv_obj_t * parent);
+
 // Variable definitions
 SleepControlConf sleepCtrlConf = {GPIO_SEL_34 | GPIO_SEL_36 | GPIO_SEL_39, ESP_EXT1_WAKEUP_ALL_LOW};
 SleepControl sleepControl(sleepCtrlConf);
@@ -73,6 +76,7 @@ void hal_setup(void)
 
     // Lunch intent mechaism
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
+    // create_black_square(lv_scr_act());
 
     void *queues[2] = { eventQueue, freqencyQueue };
     xTaskCreate(eventQueueTask, "uiTask", 4096 * 2, queues, 1, nullptr);
@@ -125,7 +129,7 @@ void eventQueueTask(void *pvParameters)
     {
         // Wait to get item from frequency producer
         if (xQueueReceive(freqencyQueue, &frequencyArgment, pdMS_TO_TICKS(5)) == pdPASS) {
-            ESP_LOGD(TAG_MAIN, "Executing inetent frequency task");
+            ESP_LOGV(TAG_MAIN, "Executing inetent frequency task");
             intentCurrent->onFrequncy();
         }
 

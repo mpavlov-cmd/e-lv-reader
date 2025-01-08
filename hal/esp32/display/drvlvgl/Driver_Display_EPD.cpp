@@ -14,6 +14,12 @@
 // Function definitions
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 void epd_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
+
+// TODO: For further optiization
+void epd_flush_cb_new(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
+void epd_set_px_cb_new(struct _lv_disp_drv_t * disp_drv, uint8_t * buf, lv_coord_t buf_w, lv_coord_t x, lv_coord_t y,
+    lv_color_t color, lv_opa_t opa);
+
 void tick_timer_callback(void *arg);
 
 #ifndef MY_DISP_HOR_RES
@@ -28,6 +34,7 @@ void tick_timer_callback(void *arg);
 // Static or global buffer(s). The second buffer is optional
 static lv_disp_draw_buf_t draw_buf_dsc_1;
 static lv_color_t buf_1[MY_DISP_HOR_RES * 32];
+static lv_color_t buf_2[MY_DISP_HOR_RES * 32];
 
 static lv_disp_drv_t disp_drv; 
 static lv_disp_t* disp;   
@@ -60,8 +67,8 @@ void lv_epd_disp_init(void)
     // ----- DISPLAY DRIVER INIT START -----
 
     // ------ Start display config ------
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 32);   /*Initialize the display buffer*/
-    lv_disp_drv_init(&disp_drv);                    /*Basic initialization*/
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, buf_2, MY_DISP_HOR_RES * 32);  
+    lv_disp_drv_init(&disp_drv);                   
 
     /*Set up the functions to access to your display*/
 
@@ -72,6 +79,8 @@ void lv_epd_disp_init(void)
     // Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = epd_flush_cb;
     disp_drv.rounder_cb = epd_rounder_cb;
+    // disp_drv.set_px_cb = epd_set_px_cb_new;
+
     disp_drv.draw_buf = &draw_buf_dsc_1;
 
     // Get pointer to the active display 
@@ -105,7 +114,7 @@ void lv_epd_mark_full(void)
 // https://docs.lvgl.io/8/porting/display.html#examples
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
-    ESP_LOGD(TAG_DISPL, "--- Flush Start ---");
+    ESP_LOGV(TAG_DISPL, "--- Flush Start ---");
     SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 
     int width = lv_area_get_width(area);
@@ -113,13 +122,13 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
 
     //  lv_draw_sw_rgb565_swap(px_map, width * height);
 
-    ESP_LOGD(TAG_DISPL, "Width and height: %ix%i", width, height);
-    ESP_LOGD(TAG_DISPL, "Start pos: %ix%i", area->x1, area->y1);
+    ESP_LOGV(TAG_DISPL, "Width and height: %ix%i", width, height);
+    ESP_LOGV(TAG_DISPL, "Start pos: %ix%i", area->x1, area->y1);
 
     // Prepare a buffer to store the e-paper-compatible image data
     unsigned char epd_buffer[(width * height) / 8];
     memset(epd_buffer, 0XFF, sizeof(epd_buffer)); // Initialize to white
-    ESP_LOGD(TAG_DISPL, "Size of buffer: %i", sizeof(epd_buffer));
+    ESP_LOGV(TAG_DISPL, "Size of buffer: %i", sizeof(epd_buffer));
 
     int32_t x, y;
     for (y = area->y1; y <= area->y2; y++)
@@ -152,20 +161,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
         }
     }
 
-    // Print for debug purposes
-    // if (chunkCounter < 4)
-    // {
-    //     for (int i = 0; i < (width * height + 7) / 8; i++)
-    //     {
-    //         ESP_LOGD(TAG_DISPL, "0x%02X, ", epd_buffer[i]);
-    //         if ((i + 1) % 8 == 0 && i != 0)
-    //         {
-    //              ESP_LOGD(TAG_DISPL, "")
-    //         }
-    //     }
-    // }
-
-    ESP_LOGD(TAG_DISPL, "--- Before RAM ---");
+    ESP_LOGV(TAG_DISPL, "--- Before RAM ---");
     if (chunkCounter == 0)
     {
         ESP_LOGD(TAG_DISPL, "--- Initial Update ---");
@@ -176,7 +172,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
         }
     }
 
-    ESP_LOGD(TAG_DISPL, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
+    ESP_LOGV(TAG_DISPL, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
     EPD_Dis_Part_RAM(area->y1, area->x1, epd_buffer, width, height);
     chunkCounter++;
 
@@ -208,4 +204,91 @@ void epd_rounder_cb(lv_disp_drv_t *disp_drv, lv_area_t *area)
 void tick_timer_callback(void *arg) {
     // Increment LVGL tick by 1 ms
     lv_tick_inc(1); 
+}
+
+// TODO: For optimization purposes
+void epd_flush_cb_new(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
+{
+    ESP_LOGD(TAG_DISPL, "--- Flush Start ---");
+    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+
+    int width = lv_area_get_width(area);
+    int height = lv_area_get_height(area);
+
+    //  lv_draw_sw_rgb565_swap(px_map, width * height);
+
+    ESP_LOGD(TAG_DISPL, "Width and height: %ix%i", width, height);
+    ESP_LOGD(TAG_DISPL, "Start pos: %ix%i", area->x1, area->y1);
+
+    unsigned char* testBuf = (unsigned char*) color_p;
+
+    // Print for debug purposes
+    // if (chunkCounter < 2)
+    // {
+    //     for (int i = 0; i < (width * height + 7) / 8; i++)
+    //     {
+    //         Serial.printf("0x%02X, ", testBuf[i]);
+    //         if ((i + 1) % 8 == 0 && i != 0)
+    //         {
+    //              Serial.println();
+    //         }
+    //     }
+    // }
+
+    ESP_LOGD(TAG_DISPL, "--- Before RAM ---");
+    if (chunkCounter == 0)
+    {
+        ESP_LOGD(TAG_DISPL, "--- Initial Update ---");
+        if (forceDispRefresh) {
+            EPD_HW_Init_Fast();
+            EPD_SetRAMValue_BaseMap(gImageBlank);
+            forceDispRefresh = false;
+        }
+    }
+
+    ESP_LOGD(TAG_DISPL, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
+    EPD_Dis_Part_RAM(area->y1, area->x1, testBuf, width, height);
+    chunkCounter++;
+
+    // if (chunkCounter == 10) {
+    if (lv_disp_flush_is_last(disp_drv)) {
+        chunkCounter = 0;
+        EPD_Part_Update();
+        EPD_DeepSleep();
+        ESP_LOGD(TAG_DISPL, "--- Flush completed ---");
+    }
+    
+    // Anyway tell lgvl that display is ready
+    SPI.endTransaction();
+    lv_disp_flush_ready(disp_drv); /* tell lvgl that flushing is done */
+}
+
+// TODO: For optimization purposes
+void epd_set_px_cb_new(_lv_disp_drv_t *disp_drv, uint8_t *buf, lv_coord_t buf_w, lv_coord_t x, lv_coord_t y,
+    lv_color_t color, lv_opa_t opa)
+{
+
+    bool px = lv_color_brightness(color) <= 128;
+    if (px) {
+        Serial.printf("Found color at x: %i, y: %i\n", x, y);
+    }
+    
+    // Threshold to determine black or white
+    uint8_t pixel = (lv_color_brightness(color) > 128) ? 0 : 1; // 1 for black, 0 for white
+
+    // Calculate the position in the buffer for column-major drawing
+    int bufIdx = (x * EPD_HEIGHT + y);
+    int bufIdxCmp = bufIdx / 8;     // Byte index
+    uint8_t bufIdxPos = bufIdx % 8; // Bit position within the byte
+
+    // Set the pixel in the buffer (monochrome format)
+    if (pixel)
+    {
+        buf[bufIdxCmp] &= ~(1 << (7 - bufIdxPos)); // Set black pixel
+    }
+
+    else
+    {
+        buf[bufIdxCmp] |= (1 << (7 - bufIdxPos)); // Set white pixel
+    }
 }

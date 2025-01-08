@@ -34,7 +34,7 @@ void IntentHome::onStartUp(IntentArgument arg)
 
 void IntentHome::onFrequncy()
 {
-	ESP_LOGD(TAG_INTNT, "IntentHome::onFrequncy");
+	ESP_LOGV(TAG_INTNT, "IntentHome::onFrequncy");
 }
 
 void IntentHome::onExit()

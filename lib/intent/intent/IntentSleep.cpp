@@ -20,7 +20,7 @@ void IntentSleep::onStartUp(IntentArgument arg) {
 }
 
 void IntentSleep::onFrequncy() {
-    ESP_LOGD(TAG_INTNT, "IntentSleep::onFrequncy");
+    ESP_LOGV(TAG_INTNT, "IntentSleep::onFrequncy");
     if (sleepPrepared && !imageDrawn) {
         
         lv_obj_t * img = lv_img_create(lv_scr_act());
