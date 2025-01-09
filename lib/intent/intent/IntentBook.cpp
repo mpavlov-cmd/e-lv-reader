@@ -69,6 +69,8 @@ void IntentBook::bookLoadingTask()
     Serial.println("Page:");
     Serial.println(bookPage);
 
+    // Mark page as ready
+    pageReady = true;
     xEventGroupSetBits(bookEventGroup, BIT3);
 
     // TODO: Bug here, move vTaskDelete to the function wrapper
@@ -183,6 +185,9 @@ void IntentBook::onStartUp(IntentArgument arg)
     Serial.printf("Book intent started with arg: %s\n", arg.strValue);
     strlcpy(bookPath, arg.strValue, sizeof(bookPath));
 
+    modelText  = new ModelText{textBox, ""};
+    widgetText = new WidgetText(widgetGroup, eventQueue);
+
     bookEventGroup = xEventGroupCreate();
 
     // Ensure UI task is runnng with higher priority
@@ -194,16 +199,30 @@ void IntentBook::onStartUp(IntentArgument arg)
 
 void IntentBook::onFrequncy()
 {
-    // Serial.println("IntentBook on frequency");
+    if (pageReady && !pageShown) {
+        Serial.println("IntentBook on frequency");
+        Serial.println(bookPage);
+
+        modelText->text = String(bookPage);
+        widgetText->upgrade(*modelText);
+
+        // Reset page shown
+        pageShown = true;
+    }
 }
 
 void IntentBook::onExit()
 {
-    Serial.println("IntentBook on exit");
+    Serial.println("IntentBook onExit");
 }
 
 ActionResult IntentBook::onAction(ActionArgument arg)
 {
+    Serial.println("IntentBook onAction");
+
+    uint32_t key = lv_indev_get_key(get_lv_keypad());
+    Serial.println(key);
+
     // In case input hed -> go home
     // if (arg.held)
     // {

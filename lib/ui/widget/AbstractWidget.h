@@ -29,7 +29,7 @@ protected:
         lv_obj_t *target = lv_event_get_target(event);
         lv_event_code_t code = lv_event_get_code(event);
 
-        // ESP_LOGD(TAG_WIDGT, "Event received for target: %p, code: %d", target, code);
+        ESP_LOGD(TAG_WIDGT, "Event received for target: %p, code: %d", target, code);
         // Retrieve the widget instance and its event queue (passed as user data)
         AbstractWidget* widget = static_cast<AbstractWidget*>(lv_event_get_user_data(event));
         if (widget && widget->eventQueue)
@@ -48,6 +48,7 @@ protected:
         // Add more events here if neded
         lv_obj_add_event_cb(obj, eventHandler, LV_EVENT_CLICKED, this);
         lv_obj_add_event_cb(obj, eventHandler, LV_EVENT_FOCUSED, this);
+        lv_obj_add_event_cb(obj, eventHandler, LV_EVENT_KEY, this);
     }
 
 private:

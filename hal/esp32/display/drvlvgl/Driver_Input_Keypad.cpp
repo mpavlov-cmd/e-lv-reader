@@ -96,6 +96,13 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
              data->key = LV_KEY_ENTER;
         }
 
+        // Send additional event to make sure key is registred
+        uint32_t currentKey = data->key;
+        if (currentKey == LV_KEY_PREV || currentKey == LV_KEY_NEXT) {
+            uint32_t keyToSend = currentKey == LV_KEY_PREV ? LV_KEY_LEFT : LV_KEY_RIGHT;
+            lv_event_send(lv_group_get_focused(lv_group_get_default()), LV_EVENT_KEY, &keyToSend);
+        }
+
     } else {
         // TODO: Figure out wy released is triggered while held
         if (btnPressed) {

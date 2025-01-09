@@ -15,11 +15,16 @@ class WidgetText : public AbstractWidget<ModelText>
             if (lv_obj_is_valid(label)) {
                 lv_obj_del(label);
             }
+            if (lv_obj_is_valid(dummy)) {
+                lv_obj_del(dummy);
+            }
             ESP_LOGD(TAG_WIDGT, "Text widget destructor end");
         }
 
     private: 
         lv_obj_t* label = nullptr;
+        // Dummy object to addinto group so I can still read prev and next input
+        lv_obj_t* dummy = nullptr;
 
         DBox createBox(ModelText& widgetData) override
         {
@@ -29,6 +34,17 @@ class WidgetText : public AbstractWidget<ModelText>
         void initialize(ModelText& widgetData) override {
 
             label = lv_label_create(parent);
+
+            // Add to group and attach event handler
+            lv_group_add_obj(widgetGroup, label);
+            attachEventHandler(label);
+
+            // Dummy objet to handle nav
+            dummy = lv_label_create(parent);
+            lv_label_set_text(dummy, "");
+            // lv_obj_add_flag(dummy, LV_OBJ_FLAG_HIDDEN);
+            lv_group_add_obj(widgetGroup, dummy); 
+            attachEventHandler(dummy);
         }
 
         void print(ModelText& widgetData) override

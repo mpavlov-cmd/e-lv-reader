@@ -23,8 +23,10 @@ private:
     char bookPath[512];
     char bookIndexPath[1024];
     char bookPage[PAGE_BUFFER_SIZE];
+    bool pageReady = false;
+    bool pageShown = false;
 
-    DBox textBox{24, 48, 432, 704, 2, 0};
+    DBox textBox{24, 48, 432, 704, 2, 5};
     ModelText* modelText = nullptr;
     WidgetText* widgetText = nullptr;
 
@@ -62,6 +64,7 @@ public:
     ~IntentBook()
     {
         delete widgetText;
+        delete modelText;
     }
 };
 

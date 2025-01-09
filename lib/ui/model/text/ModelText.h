@@ -6,6 +6,8 @@
 #include <model/DPosition.h>
 #include <box/DBox.h>
 
+// TODO: Add properties wether the object should be added to event group
+// TODO: Add font settings and text alignment settings 
 struct ModelText {
     DBox box;
     String text;
