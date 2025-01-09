@@ -8,6 +8,8 @@
 #include <ActionArgument.h>
 #include "lvgl.h"
 #include "drvlvgl/Driver_Input_Keypad.h"
+#include "esp_log.h"
+#include "LogTags.h"
 
 enum ActionRetultType { VOID, CHANGE_INTENT };
 

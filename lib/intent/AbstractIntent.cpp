@@ -4,4 +4,8 @@ const ActionResult ActionResult::VOID = {ActionRetultType::VOID, 0, IntentArgume
 
 AbstractIntent::AbstractIntent(QueueHandle_t& mEventQueue): eventQueue(mEventQueue)
 {
+    ESP_LOGD(TAG_INTNT, "AbstractIntent constructor start");
+	widgetGroup = lv_group_create();
+	lv_indev_set_group(get_lv_keypad(), widgetGroup);
+    ESP_LOGD(TAG_INTNT, "AbstractIntent constructor end");
 }

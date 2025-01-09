@@ -19,10 +19,15 @@
 #include "PinDefinitions.h"
 #include "SleepControl.h"
 #include "FileManager.h"
+#include "text/TextIndex.h"
+#include "cache/DirectoryCache.h"
+
+// Intents 
 #include "AbstractIntent.h"
 #include "intent/IntentHome.h"
 #include "intent/IntentSleep.h"
 #include "intent/IntentFileSelector.h"
+#include "intent/IntentBook.h"
 
 // Function definitions
 void blink(void* pvParameters);
@@ -45,9 +50,11 @@ QueueHandle_t freqencyQueue = xQueueCreate(1, sizeof(uint8_t));;
 
 ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
+TextIndex textIndex(fileManager);
+DirectoryCache directoryCache(fileManager);
 
 TaskHandle_t intentFreqHandle = NULL;
-AbstractIntent* intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
+AbstractIntent* intentCurrent = nullptr;
 
 
 void hal_setup(void)
@@ -75,6 +82,7 @@ void hal_setup(void)
     lv_arduino_fs_init();
 
     // Lunch intent mechaism
+    intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
     // create_black_square(lv_scr_act());
 
@@ -170,9 +178,9 @@ void buildIntent(uint8_t intentId)
 	case INTENT_ID_SLEEP:
 		intentCurrent = new IntentSleep(eventQueue, sleepControl);
 		break;
-	// case INTENT_ID_BOOK:
-	// 	intentCurrent = new IntentBook(display, semaphoreHandle, textIndex, fileManager);
-	// 	break;
+	case INTENT_ID_BOOK:
+		intentCurrent = new IntentBook(eventQueue, fileManager, textIndex, directoryCache);
+		break;
 	default:
 		intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
 		break;

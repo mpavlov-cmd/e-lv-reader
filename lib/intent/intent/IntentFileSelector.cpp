@@ -60,11 +60,6 @@ IntentFileSelector::IntentFileSelector(QueueHandle_t& mEventQueue, FileManager &
 
 void IntentFileSelector::onStartUp(IntentArgument arg)
 {
-    // TODO: Duplicate code move to abstract intent
-    // Group shoud be created after vl_init() so calling manually
-	widgetGroup = lv_group_create();
-	lv_indev_set_group(get_lv_keypad(), widgetGroup);
-
     ESP_LOGV(TAG_INTNT, "Intent FileSelector On Startup Called with argument: %s", arg.strValue);
     const char* rootPath = arg.strValue == nullptr ? "/" : arg.strValue;
 

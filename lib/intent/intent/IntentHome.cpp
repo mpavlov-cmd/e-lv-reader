@@ -6,11 +6,6 @@ AbstractIntent(mEventQueue), espTime(espTime), fileManager(fm) {}
 
 void IntentHome::onStartUp(IntentArgument arg)
 {
-	// TODO: Duplicate code move to abstract intent
-    // Group shoud be created after lv_init() so calling manually
-	widgetGroup = lv_group_create();
-	lv_indev_set_group(get_lv_keypad(), widgetGroup);
-
 	// Define menu items
 	Set<MenuItem> menuItems(10);
 

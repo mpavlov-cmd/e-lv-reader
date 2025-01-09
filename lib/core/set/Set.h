@@ -29,24 +29,24 @@ public:
     // Destructor
     ~Set()
     {
-        ESP_LOGD(TAG_SET, "Entering set distructor");
+        ESP_LOGV(TAG_SET, "Entering set distructor");
         // Delete all dynamically allocated items
         clear();
 
-        ESP_LOGD(TAG_SET, "Before array delete");
+        ESP_LOGV(TAG_SET, "Before array delete");
         if (itemsArray != nullptr)
         {
             delete[] itemsArray;
             itemsArray = nullptr;
         }
 
-        ESP_LOGD(TAG_SET, "Exiting set distructor");
+        ESP_LOGV(TAG_SET, "Exiting set distructor");
     }
 
     // Copy Constructor (Deep Copy)
     Set(const Set &other) : index(0), capacity(other.capacity)
     {
-        ESP_LOGD(TAG_SET, "Entering copy constructor");
+        ESP_LOGV(TAG_SET, "Entering copy constructor");
 
         itemsArray = new T *[capacity]();
         // Deep copy each item
@@ -74,7 +74,7 @@ public:
             addItem(new T(*other.getItem(i)));
         }
 
-        ESP_LOGD(TAG_SET, "Assignment done Old size: %i, new size: %i\n", other.size(), size());
+        ESP_LOGV(TAG_SET, "Assignment done Old size: %i, new size: %i\n", other.size(), size());
         
         return *this;
     }
@@ -149,16 +149,16 @@ public:
      */
     void clear() override
     {
-        ESP_LOGD(TAG_SET, "Inside of clear method");
+        ESP_LOGV(TAG_SET, "Inside of clear method");
         while (index > 0)
         {
-            ESP_LOGD(TAG_SET, "Deleting index: %i", index);
+            ESP_LOGV(TAG_SET, "Deleting index: %i", index);
 
             delete itemsArray[--index]; // Delete each item
             itemsArray[index] = nullptr;
         }
 
-        ESP_LOGD(TAG_SET, "Clear completed");
+        ESP_LOGV(TAG_SET, "Clear completed");
     }
 };
 

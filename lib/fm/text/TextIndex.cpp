@@ -37,8 +37,14 @@ String TextIndex::index(const char *path)
 	String filename = String(file.name());
 	filename.toLowerCase();
 
-	String idxDirName = "._" + filename + "_" + checksum + "_idx";	
-	String idxDirPath = String(parentDir) + "/" + idxDirName;
+	String idxDirName = "._" + filename + "_" + checksum + "_idx";
+	String idxDirPath = String(parentDir);
+	if (idxDirPath.length() > 0 && idxDirPath[idxDirPath.length() - 1] != '/') {
+		idxDirPath.concat("/");
+	}
+	idxDirPath.concat(idxDirName);
+
+	ESP_LOGD(TAG_INDEX, "Dir Name: %s", parentDir);
 
 	const char* idxDirPathCharArr = idxDirPath.c_str();
 
