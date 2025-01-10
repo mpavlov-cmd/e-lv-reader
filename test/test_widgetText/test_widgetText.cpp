@@ -17,7 +17,7 @@
 
 #include <widget/WidgetText.h>
 
-DBox textBox{24, 48, 432, 704, 2, 0};
+DBox textBox{24, 48, 432, 704, 1, 1};
 lv_group_t * widgetGroup;
 QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));
 
@@ -48,14 +48,22 @@ void testRendersOneLineOfText_void(void) {
 
     // Given
     WidgetText widgetText(widgetGroup, eventQueue);
-    ModelText modelText{textBox, "Single line text"};
+   
+    ModelText* modelText = ModelText::newPtr();
+    modelText->box   = textBox;
+    modelText->text  = "Single line text";
+    modelText->align = LV_ALIGN_CENTER;
+    modelText->font  = &lv_font_montserrat_24; 
 
     // When
-    widgetText.upgrade(modelText);
+    widgetText.upgrade(*modelText);
     lv_timer_handler();
 
     // Then
     TEST_ASSERT_TRUE(true);
+
+    // Cleanup 
+    delete modelText;
 }
 
 void testRendersMultileLinesOfText_void(void) {
@@ -68,14 +76,20 @@ void testRendersMultileLinesOfText_void(void) {
     text += "this line goes after double line break, see if it is good!";
 
     WidgetText widgetText(widgetGroup, eventQueue);
-    ModelText modelText{textBox, text};
+
+    ModelText* modelText = ModelText::newPtr();
+    modelText->box = textBox;
+    modelText->text = text;
 
     // When
-    widgetText.upgrade(modelText);
+    widgetText.upgrade(*modelText);
     lv_timer_handler();
 
     // Then
     TEST_ASSERT_TRUE(true);
+    
+    // Cleanup 
+    delete modelText;
 }
 
 

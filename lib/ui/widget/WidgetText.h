@@ -34,23 +34,28 @@ class WidgetText : public AbstractWidget<ModelText>
         void initialize(ModelText& widgetData) override {
 
             label = lv_label_create(parent);
+            lv_style_set_text_font(&style, widgetData.font);
 
-            // Add to group and attach event handler
-            lv_group_add_obj(widgetGroup, label);
-            attachEventHandler(label);
+            // In case input handling is required for widget e.g., display more text on action
+            if (widgetData.hasAction)
+            {
+                // Add to group and attach event handler
+                lv_group_add_obj(widgetGroup, label);
+                attachEventHandler(label);
 
-            // Dummy objet to handle nav
-            dummy = lv_label_create(parent);
-            lv_label_set_text(dummy, "");
-            // lv_obj_add_flag(dummy, LV_OBJ_FLAG_HIDDEN);
-            lv_group_add_obj(widgetGroup, dummy); 
-            attachEventHandler(dummy);
+                // Dummy objet to handle nav
+                dummy = lv_label_create(parent);
+                lv_label_set_text(dummy, "");
+                // lv_obj_add_flag(dummy, LV_OBJ_FLAG_HIDDEN);
+                lv_group_add_obj(widgetGroup, dummy);
+                attachEventHandler(dummy);
+            }
         }
 
         void print(ModelText& widgetData) override
         {
             lv_label_set_text(label, widgetData.text.c_str());
-            lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+            lv_obj_align(label, widgetData.align, 0, 0);
         }
 };
 

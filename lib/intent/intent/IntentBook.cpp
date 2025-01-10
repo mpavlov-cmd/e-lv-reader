@@ -185,8 +185,11 @@ void IntentBook::onStartUp(IntentArgument arg)
     Serial.printf("Book intent started with arg: %s\n", arg.strValue);
     strlcpy(bookPath, arg.strValue, sizeof(bookPath));
 
-    modelText  = new ModelText{textBox, ""};
     widgetText = new WidgetText(widgetGroup, eventQueue);
+    
+    modelText = ModelText::newPtr();
+    modelText->box = textBox;
+    modelText->hasAction = true;
 
     bookEventGroup = xEventGroupCreate();
 

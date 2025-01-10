@@ -11,8 +11,12 @@ void IntentSleep::onStartUp(IntentArgument arg) {
     ESP_LOGD(TAG_INTNT, "IntentSleep::onStartUp");
 
     textBox    = new DBox{176, 368, 128, 64, 0, 1};
-    modelText  = new ModelText {*textBox, "Zzzzzz..."};
     widgetText = new WidgetText(widgetGroup, eventQueue);
+
+    modelText = ModelText::newPtr();
+    modelText->box   = *textBox;
+    modelText->text  = "Zzzz...";
+    modelText->align = LV_ALIGN_CENTER;
 
     widgetText->upgrade(*modelText);
 
