@@ -26,7 +26,7 @@ private:
     bool pageReady = false;
     bool pageShown = false;
 
-    DBox textBox{24, 48, 432, 704, 2, 5};
+    DBox textBox{24, 48, 432, 704, 2, 2};
     ModelText* modelText = nullptr;
     WidgetText* widgetText = nullptr;
 

@@ -5,11 +5,18 @@ void IntentBook::bookLoadingTask()
     Serial.println("Book loading task stated");
 
     // Index Book
-    TextIndex::Conf conf{(uint16_t)(textBox.width - textBox.padding), (uint16_t)(textBox.height - textBox.padding), 50, true};
-    textIndex.configure(conf);
+    TextIndex::Conf conf{
+        (uint16_t)(textBox.width - textBox.padding),
+        (uint16_t)(textBox.height - textBox.padding),
+        &lv_font_montserrat_18,
+        50,
+        false
+    };
 
     // Configure and run text index
+    textIndex.configure(conf);
     String textIndexDirPath = textIndex.index(bookPath);
+
     // Copy path to intent local variabe
     strlcpy(bookIndexPath, textIndexDirPath.c_str(), sizeof(bookIndexPath));
     Serial.printf("-- Index Generated! Dir: %s --\n", bookIndexPath);
@@ -36,9 +43,9 @@ void IntentBook::bookLoadingTask()
         dirCacheModel.lastOpened = millis();
 
         strlcpy(
-            dirCacheModel.curFileNme,        // <- destination
-            firstPage->getName(),            // <- source
-            sizeof(dirCacheModel.curFileNme) // <- destination's capacity
+            dirCacheModel.filePath,        // <- destination
+            firstPage->getPath(),          // <- source
+            sizeof(dirCacheModel.filePath) // <- destination's capacity
         );
 
         bool writeResult = directoryCache.write(bookIndexPath, dirCacheModel);
@@ -49,7 +56,7 @@ void IntentBook::bookLoadingTask()
         }
     }
 
-    String pagePath = textIndexDirPath + "/" + dirCacheModel.curFileNme;
+    String pagePath =dirCacheModel.filePath;
     const char *pagePacthC = pagePath.c_str();
 
     // TODO: Resut ignored
@@ -171,6 +178,9 @@ void IntentBook::onStartUp(IntentArgument arg)
     Serial.printf("Book intent started with arg: %s\n", arg.strValue);
     strlcpy(bookPath, arg.strValue, sizeof(bookPath));
 
+    // Disable invalidate vidget on input
+    lv_joystick_invalidate(false);
+
     widgetText = new WidgetText(widgetGroup, eventQueue);
 
     modelText = ModelText::newPtr();
@@ -199,13 +209,14 @@ void IntentBook::onFrequncy()
 void IntentBook::onExit()
 {
     Serial.println("IntentBook onExit");
+    lv_joystick_invalidate(true); // Re-inable on input invalidation
 }
 
 ActionResult IntentBook::onAction(ActionArgument arg)
 {
     Serial.println("IntentBook onAction");
 
-    uint32_t key = lv_indev_get_key(get_lv_keypad());
+    uint32_t key = lv_indev_get_key(lv_get_keypad());
     Serial.println(key);
 
     // TODO: Temp return home on click, todo: add menu;
@@ -214,48 +225,43 @@ ActionResult IntentBook::onAction(ActionArgument arg)
         return {ActionRetultType::CHANGE_INTENT, INTENT_ID_HOME, IntentArgument::NO_ARG};
     }
 
-    // // Handle page change
-    // if (arg.actionBit == BUTTON_ACTION_UP || arg.actionBit == BUTTON_ACTION_DOWN) {
+    // Handle page up and down
+    if (key == LV_KEY_UP || key == LV_KEY_DOWN)  {
+        // Serial.println("Up or down");
+    }
 
-    //     Serial.printf("Opening next page for cached book: %s\n", bookPath);
+    // Default page navigation
+    if (key == LV_KEY_NEXT || key == LV_KEY_PREV)  {
+    
+        Serial.printf("Opening next page for cached book: %s\n", bookPath);
 
-    //     // TODO: Injet as a dependency?
-    //     DirectoryCache directoryCahe(fileManager);
+        DirectoryCache::Model cacheModel;
+        bool result = directoryCache.read(bookIndexPath, cacheModel);
+        if (!result) {
+            Serial.println("Error opening page");
+        }
 
-    //     DirectoryCache::Model cacheModel;
-    //     bool result = directoryCahe.read(bookIndexPath, cacheModel);
+        // TODO: Hande max and min page nums 
+        uint16_t pageNum = cacheModel.curFileIdx;
+        pageNum++;
 
-    //     if (!result) {
-    //         Serial.println("Error opening page");
-    //     }
+        String pagePath = String(getParentDir(cacheModel.filePath)) + "/._" + String(pageNum) + ".page.txt";
+        const char* pagePathC = pagePath.c_str();
+        Serial.printf("Next page path: %s\n", pagePathC);
 
-    //     // TODO: Hande max and min page nums 
-    //     uint16_t pageNum = cacheModel.curFileIdx;
-    //     pageNum++;
+        // TODO: Resut ignored
+        fileManager.readFileToBuffer(pagePathC, bookPage, PAGE_BUFFER_SIZE);
+        modelText->text = bookPage;
 
-    //     String pagePath = String(bookIndexPath) +  "/._" + String(pageNum) + ".page.txt";
-    //     const char* pagePathC = pagePath.c_str();
-    //     Serial.printf("Next page path: %s\n", pagePathC);
+        Serial.println("Printing page...");
+        widgetText->upgrade(*modelText);
 
-    //     // TODO: Resut ignored
-    //     fileManager.readFileToBuffer(pagePathC, bookPage, PAGE_BUFFER_SIZE);
-    //     ModelText modelTextObj = {textBox, TOP_LEFT, bookPage};
+        // Save last opened page
+        cacheModel.curFileIdx = pageNum;
+        strlcpy(cacheModel.filePath, pagePathC, sizeof(cacheModel.filePath));
+        bool writeResult = directoryCache.write(bookIndexPath, cacheModel);
+    }
 
-    //     Serial.println("Printing page...");
-
-    //     // TODO: --------- Why lock is not asquired?? ---------
-    //     // xSemaphoreTake(displaySemaphoreHandle, portMAX_DELAY);
-    //     Serial.println("Lock asquired");
-    //     widgetText->upgrade(modelTextObj);
-    //     // xSemaphoreGive(displaySemaphoreHandle);
-
-    //     // Save last opened page
-    //     cacheModel.curFileIdx = pageNum;
-    //     bool writeResult = directoryCahe.write(bookIndexPath, cacheModel);
-    // }
-
-
-    // // Implement next page / previous page
     return ActionResult::VOID;
 }
 

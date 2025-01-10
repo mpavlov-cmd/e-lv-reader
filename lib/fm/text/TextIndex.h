@@ -29,6 +29,7 @@ struct TextIndex {
 
             const uint16_t textWidth;
             const uint16_t textHeight;
+            const lv_font_t* font;
             const uint16_t pageLimit;
             const bool forceIndex;
         };

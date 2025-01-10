@@ -20,7 +20,7 @@ public:
         uint16_t curFileIdx;
         uint16_t totalFiles;
         unsigned long lastOpened;
-        char curFileNme[1024];
+        char filePath[1024];
     };
 
     DirectoryCache(FileManager &fileManager);

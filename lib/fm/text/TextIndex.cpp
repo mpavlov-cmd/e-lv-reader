@@ -2,7 +2,7 @@
 #include <esp_log.h>
 #include <LogTags.h>
 
-const TextIndex::Conf TextIndex::Conf::DFT = {432, 704, 0, false};
+const TextIndex::Conf TextIndex::Conf::DFT = {432, 704, &lv_font_montserrat_14, 0, false};
 
 TextIndex::TextIndex(FileManager &fileManager) : fm(fileManager)
 {
@@ -238,6 +238,7 @@ void TextIndex::configure(const TextIndex::Conf& conf)
     textAreaHeight = conf.textHeight;
     pageLimit      = conf.pageLimit;
 	forceIndex     = conf.forceIndex;
+	lvFont         = conf.font;
 
 	lv_point_t sizeRes;
 

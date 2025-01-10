@@ -39,9 +39,9 @@ bool DirectoryCache::read(const char *path, Model &model)
     model.lastOpened = doc["lastOpened"] | 0;
 
     strlcpy(
-        model.curFileNme,        // <- destination
-        doc["curFileNme"] | "",  // <- source
-        sizeof(model.curFileNme) // <- destination's capacity
+        model.filePath,        // <- destination
+        doc["filePath"] | "",  // <- source
+        sizeof(model.filePath) // <- destination's capacity
     );
 
     cacheFile.close();
@@ -62,7 +62,7 @@ bool DirectoryCache::write(const char *path, Model &model)
     ESP_LOGV(TAG_FM, "curFileIdx: %i",  model.curFileIdx);
     ESP_LOGV(TAG_FM, "totalFiles: %i",  model.totalFiles);
     ESP_LOGV(TAG_FM, "lastOpened: %lu", model.lastOpened);
-    ESP_LOGV(TAG_FM, "curFileNme: %s",  model.curFileNme);
+    ESP_LOGV(TAG_FM, "filePath: %s",  model.filePath);
 
     const char* cacheDirPathC = getParentDir(fullPathC);
     if (!fileManager.exists(cacheDirPathC))
@@ -83,7 +83,7 @@ bool DirectoryCache::write(const char *path, Model &model)
     doc["curFileIdx"] = model.curFileIdx;
     doc["totalFiles"] = model.totalFiles;
     doc["lastOpened"] = model.lastOpened;
-    doc["curFileNme"] = model.curFileNme;
+    doc["filePath"]   = model.filePath;
 
     if (serializeJson(doc, cacheFile) == 0) {
         ESP_LOGE(TAG_FM, "Failed to write json file: %s", fullPathC);

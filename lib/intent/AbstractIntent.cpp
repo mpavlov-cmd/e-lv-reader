@@ -6,6 +6,6 @@ AbstractIntent::AbstractIntent(QueueHandle_t& mEventQueue): eventQueue(mEventQue
 {
     ESP_LOGD(TAG_INTNT, "AbstractIntent constructor start");
 	widgetGroup = lv_group_create();
-	lv_indev_set_group(get_lv_keypad(), widgetGroup);
+	lv_indev_set_group(lv_get_keypad(), widgetGroup);
     ESP_LOGD(TAG_INTNT, "AbstractIntent constructor end");
 }

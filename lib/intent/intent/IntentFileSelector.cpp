@@ -47,7 +47,7 @@ void IntentFileSelector::prepareAndRnderDir(const char *path)
 
     // Create widgets
 	menuParent = lv_obj_create(lv_scr_act());
-	set_lv_active_object(menuParent);
+	lv_joystick_active_object(menuParent);
 
     widgetMenu = new WidgetMenu(widgetGroup, menuParent, eventQueue);
     widgetMenu->upgrade(*menu);
@@ -74,6 +74,7 @@ void IntentFileSelector::onFrequncy()
 void IntentFileSelector::onExit()
 {
     ESP_LOGD(TAG_INTNT, "IntentFileSelector::onExit");
+    lv_joystick_active_object(nullptr);
 }
 
 ActionResult IntentFileSelector::onAction(ActionArgument arg)

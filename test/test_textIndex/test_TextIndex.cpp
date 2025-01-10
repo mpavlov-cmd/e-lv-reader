@@ -16,7 +16,7 @@
 #include <FileManager.h>
 #include <text/TextIndex.h>
 
-TextIndex::Conf indexConf = {432, 704, 0, true};
+TextIndex::Conf indexConf = {432, 704, &lv_font_montserrat_14, 0, true};
 
 const char* PATH_TEST_DIR   = "/.test";
 const char* PATH_SHORT_TEXT = "/.test/text_short.txt";
@@ -111,7 +111,7 @@ void testMultiPageFileIndexed_hasFullData(void) {
     Set<FileIndex> resultindex(32);
     bool success = fileManager.indexDirectory(filePathCharArr, DirIndexConf::FULL, resultindex);
     uint16_t indexSize = resultindex.size();
-    TEST_ASSERT_EQUAL_INT(16, indexSize);
+    TEST_ASSERT_EQUAL_INT(6, indexSize);
 
     FileIndex lastFileIndex = *resultindex.getItem(indexSize - 1);
      
