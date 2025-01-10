@@ -4,26 +4,15 @@ void IntentBook::bookLoadingTask()
 {
     Serial.println("Book loading task stated");
 
-    // Indicate processing start
-    xEventGroupSetBits(bookEventGroup, BIT0);
- 
-      // Index Book
+    // Index Book
     TextIndex::Conf conf{(uint16_t)(textBox.width - textBox.padding), (uint16_t)(textBox.height - textBox.padding), 50, true};
     textIndex.configure(conf);
 
     // Configure and run text index
-    xEventGroupSetBits(bookEventGroup, BIT1);
     String textIndexDirPath = textIndex.index(bookPath);
-
     // Copy path to intent local variabe
     strlcpy(bookIndexPath, textIndexDirPath.c_str(), sizeof(bookIndexPath));
-
     Serial.printf("-- Index Generated! Dir: %s --\n", bookIndexPath);
-    xEventGroupSetBits(bookEventGroup, BIT2);
-
-    // Check if directory index exists
-    // TODO: Injet as a dependency?
-    // DirectoryCache directoryCahe(fileManager);
 
     DirectoryCache::Model dirCacheModel;
     bool hasDirCache = directoryCache.read(bookIndexPath, dirCacheModel);
@@ -71,14 +60,11 @@ void IntentBook::bookLoadingTask()
 
     // Mark page as ready
     pageReady = true;
-    xEventGroupSetBits(bookEventGroup, BIT3);
-
-    // TODO: Bug here, move vTaskDelete to the function wrapper
     vTaskDelete(NULL);
 }
 
-void IntentBook::bookDiaplayTask()
-{
+// void IntentBook::bookDiaplayTask()
+// {
     // Serial.println("Book display task stated");
 
     // widgetText = new WidgetText(display);
@@ -175,7 +161,7 @@ void IntentBook::bookDiaplayTask()
 
     // // delete widgetText;
     // vTaskDelete(NULL);
-}
+// }
 
 IntentBook::IntentBook(QueueHandle_t& mEventQueue, FileManager &fileManager, TextIndex &textIndex, DirectoryCache &directoryCache) :
     AbstractIntent(mEventQueue), fileManager(fileManager), textIndex(textIndex), directoryCache(directoryCache) {}
@@ -186,18 +172,14 @@ void IntentBook::onStartUp(IntentArgument arg)
     strlcpy(bookPath, arg.strValue, sizeof(bookPath));
 
     widgetText = new WidgetText(widgetGroup, eventQueue);
-    
+
     modelText = ModelText::newPtr();
     modelText->box = textBox;
+    modelText->font = &lv_font_montserrat_18;
     modelText->hasAction = true;
 
-    bookEventGroup = xEventGroupCreate();
-
     // Ensure UI task is runnng with higher priority
-    if (bookEventGroup != NULL) {
-        xTaskCreate(bookLoadingEntry, "bookLoading", 1024 * 10, this, 1, &bookLoadingHandle);
-        // xTaskCreate(bookDisplayEntry, "bookDisplay", 1024 *  5, this, 5, &bookDisplayHandle);
-    }
+    xTaskCreate(bookLoadingEntry, "bookLoading", 1024 * 10, this, 1, &bookLoadingHandle);
 }
 
 void IntentBook::onFrequncy()
@@ -226,11 +208,11 @@ ActionResult IntentBook::onAction(ActionArgument arg)
     uint32_t key = lv_indev_get_key(get_lv_keypad());
     Serial.println(key);
 
-    // In case input hed -> go home
-    // if (arg.held)
-    // {
-    //     return {ActionRetultType::CHANGE_INTENT, INTENT_ID_HOME, IntentArgument::NO_ARG};
-    // }
+    // TODO: Temp return home on click, todo: add menu;
+    if (arg.code == LV_EVENT_CLICKED)
+	{
+        return {ActionRetultType::CHANGE_INTENT, INTENT_ID_HOME, IntentArgument::NO_ARG};
+    }
 
     // // Handle page change
     // if (arg.actionBit == BUTTON_ACTION_UP || arg.actionBit == BUTTON_ACTION_DOWN) {

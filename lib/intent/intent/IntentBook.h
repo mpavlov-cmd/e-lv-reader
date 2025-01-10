@@ -30,22 +30,14 @@ private:
     ModelText* modelText = nullptr;
     WidgetText* widgetText = nullptr;
 
-    EventGroupHandle_t bookEventGroup = NULL;
     TaskHandle_t bookLoadingHandle = NULL;
-    TaskHandle_t bookDisplayHandle = NULL;
 
     void bookLoadingTask();
-    void bookDiaplayTask();
 
     // Static wrappers function for xTaskCreate
     static void bookLoadingEntry(void *param) {
         IntentBook *self = static_cast<IntentBook *>(param);
         self->bookLoadingTask(); // Call the private member function
-    }
-
-    static void bookDisplayEntry(void *param) {
-        IntentBook *self = static_cast<IntentBook *>(param);
-        self->bookDiaplayTask(); // Call the private member function
     }
 
 public:
