@@ -114,7 +114,7 @@ void testReadWhenValidFile_returnsTrue(void)
     fileManager.createDir(parentDir);
     fileManager.writeFile(
         fullPath,
-        "{\"curFileIdx\":1,\"totalFiles\":100,\"lastOpened\":1734792636,\"curFileNme\":\"test.txt\"}");
+        "{\"curFileIdx\":1,\"totalFiles\":100,\"lastOpened\":1734792636,\"filePath\":\"/test.txt\"}");
 
     // When
     bool result = testSubject.read(PATH_TEST_DIR, emptyModel);
@@ -124,7 +124,7 @@ void testReadWhenValidFile_returnsTrue(void)
     TEST_ASSERT_EQUAL(1, emptyModel.curFileIdx);
     TEST_ASSERT_EQUAL(100, emptyModel.totalFiles);
     TEST_ASSERT_EQUAL(1734792636, emptyModel.lastOpened);
-    TEST_ASSERT_EQUAL_STRING("test.txt", emptyModel.curFileNme);    
+    TEST_ASSERT_EQUAL_STRING("/test.txt", emptyModel.filePath);    
 }
 
 void testWriteWhenNullPath_returnsFalse(void)
@@ -142,7 +142,7 @@ void testWriteWhenNullPath_returnsFalse(void)
 void testWriteWhenValidPath_returnsTrue(void) 
 {
     // Given
-    DirectoryCache::Model model{2, 200, (unsigned long) 34792636, "write_test.txt"};
+    DirectoryCache::Model model{2, 200, (unsigned long) 34792636, "/home/write_test.txt"};
 
     // When
     bool result = testSubject.write(PATH_TEST_DIR, model);
@@ -160,7 +160,7 @@ void testWriteWhenValidPath_returnsTrue(void)
 
     // File contents is expecetd
     const char *fileContent 
-        = "{\"curFileIdx\":2,\"totalFiles\":200,\"lastOpened\":34792636,\"curFileNme\":\"write_test.txt\"}";
+        = "{\"curFileIdx\":2,\"totalFiles\":200,\"lastOpened\":34792636,\"filePath\":\"/home/write_test.txt\"}";
 
     char buffer[1024];
     fileManager.readFileToBuffer(filePathC, buffer, 1024);
@@ -174,7 +174,7 @@ void testWriteWhenValidPath_returnsTrue(void)
     TEST_ASSERT_EQUAL(2, emptyModel.curFileIdx);
     TEST_ASSERT_EQUAL(200, emptyModel.totalFiles);
     TEST_ASSERT_EQUAL(34792636, emptyModel.lastOpened);
-    TEST_ASSERT_EQUAL_STRING("write_test.txt", emptyModel.curFileNme); 
+    TEST_ASSERT_EQUAL_STRING("/home/write_test.txt", emptyModel.filePath); 
 }
 
 // Actual test runner

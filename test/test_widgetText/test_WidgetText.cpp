@@ -18,7 +18,7 @@
 #include <widget/WidgetText.h>
 
 DBox textBox{24, 48, 432, 704, 1, 1};
-lv_group_t * widgetGroup;
+lv_group_t* widgetGroup;
 QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));
 
 void setUp(void)
@@ -36,7 +36,7 @@ void setUp(void)
     lv_arduino_fs_init();
 
     widgetGroup = lv_group_create();
-	lv_indev_set_group(get_lv_keypad(), widgetGroup);
+	lv_indev_set_group(lv_get_keypad(), widgetGroup);
 }
 
 void tearDown(void)
