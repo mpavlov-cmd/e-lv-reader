@@ -5,10 +5,13 @@
 #include <IntentIdentifier.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
-#include <widget/WidgetText.h>
-#include <text/TextIndex.h>
 #include <cache/DirectoryCache.h>
-#include <ButtonActions.h>
+#include <text/TextIndex.h>
+
+#include <widget/WidgetText.h>
+#include <widget/WidgetBookStat.h>
+#include <model/book/ModelBookStat.h>
+
 
 struct IntentBook : public AbstractIntent
 {
@@ -26,10 +29,16 @@ private:
     bool pageReady = false;
     bool pageShown = false;
 
-    DBox textBox{24, 48, 432, 704, 2, 2};
+    // Widgets
+    DBox boxText = DBox::atCenter(480, 736, 8, 0);
     ModelText* modelText = nullptr;
     WidgetText* widgetText = nullptr;
 
+    DBox boxBookStat = DBox::stickBottom(480, 32, 8, 0);
+    ModelBookStat* modelBookStat = nullptr;
+    WidgetBookStat* widgetBookStat = nullptr;
+
+    // Task data
     TaskHandle_t bookLoadingHandle = NULL;
 
     void bookLoadingTask();
@@ -57,6 +66,8 @@ public:
     {
         delete widgetText;
         delete modelText;
+        delete widgetBookStat;
+        delete modelBookStat;
     }
 };
 

@@ -81,14 +81,17 @@ void hal_setup(void)
     // Init lv file system 
     lv_arduino_fs_init();
 
-    // Lunch intent mechaism
-    intentCurrent = new IntentHome(eventQueue, rtc, fileManager);
-    intentCurrent->onStartUp(IntentArgument::NO_ARG);
-    // create_black_square(lv_scr_act());
-
+    // Create event queue adnd frequency tasks 
     void *queues[2] = { eventQueue, freqencyQueue };
     xTaskCreate(eventQueueTask, "uiTask", 4096 * 2, queues, 1, nullptr);
     xTaskCreate(taskIntentFreq, "intentFreq", 2048, freqencyQueue, 1, &intentFreqHandle);
+
+    // Lunch intent mechaism
+    IntentArgument arg("/books/water.txt");
+    buildIntent(INTENT_ID_BOOK);
+    intentCurrent->onStartUp(arg);
+    
+    // create_black_square(lv_scr_act());    
 }
 
 void hal_loop(void)
@@ -135,9 +138,17 @@ void eventQueueTask(void *pvParameters)
 
     while (true)
     {
+        // Make sure intent is initialized
+        if (intentCurrent == nullptr) {
+            vTaskDelay(5 / portTICK_PERIOD_MS );
+            continue;
+        }
+
         // Wait to get item from frequency producer
         if (xQueueReceive(freqencyQueue, &frequencyArgment, pdMS_TO_TICKS(5)) == pdPASS) {
             ESP_LOGV(TAG_MAIN, "Executing inetent frequency task");
+
+            // Account for intent init
             intentCurrent->onFrequncy();
         }
 

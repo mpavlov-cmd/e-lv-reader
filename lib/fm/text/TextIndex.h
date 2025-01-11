@@ -67,7 +67,7 @@ struct TextIndex {
         size_t currentStatusVaue = 0;
 
         uint16_t textAreaWidth  = 480;
-        uint16_t textAreaHeight = 760;
+        uint16_t textAreaHeight = 800;
 
         // Define variables for text size detection
         int16_t x = 0, y = 0;

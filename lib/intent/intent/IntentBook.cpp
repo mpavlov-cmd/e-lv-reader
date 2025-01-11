@@ -3,15 +3,11 @@
 void IntentBook::bookLoadingTask()
 {
     Serial.println("Book loading task stated");
+    uint16_t indexWidth = boxText.width - boxText.padding;
+    uint16_t indexHeight = boxText.height - boxText.padding;
 
     // Index Book
-    TextIndex::Conf conf{
-        (uint16_t)(textBox.width - textBox.padding),
-        (uint16_t)(textBox.height - textBox.padding),
-        &lv_font_montserrat_18,
-        50,
-        false
-    };
+    TextIndex::Conf conf{indexWidth, indexHeight, &lv_font_montserrat_18, 20, false};
 
     // Configure and run text index
     textIndex.configure(conf);
@@ -56,11 +52,15 @@ void IntentBook::bookLoadingTask()
         }
     }
 
-    String pagePath =dirCacheModel.filePath;
+    String pagePath = dirCacheModel.filePath;
     const char *pagePacthC = pagePath.c_str();
 
     // TODO: Resut ignored
     fileManager.readFileToBuffer(pagePacthC, bookPage, PAGE_BUFFER_SIZE);
+
+    // Set values for bookStat;
+    modelBookStat->currentPage = dirCacheModel.curFileIdx;
+    modelBookStat->totalPages  = dirCacheModel.totalFiles;
 
     Serial.println("Page:");
     Serial.println(bookPage);
@@ -179,14 +179,18 @@ void IntentBook::onStartUp(IntentArgument arg)
     strlcpy(bookPath, arg.strValue, sizeof(bookPath));
 
     // Disable invalidate vidget on input
-    lv_joystick_invalidate(false);
+    // lv_joystick_invalidate(false);
 
+    // Inint wdgets
     widgetText = new WidgetText(widgetGroup, eventQueue);
 
     modelText = ModelText::newPtr();
-    modelText->box = textBox;
+    modelText->box = boxText;
     modelText->font = &lv_font_montserrat_18;
     modelText->hasAction = true;
+
+    widgetBookStat = new WidgetBookStat(widgetGroup, eventQueue);
+    modelBookStat  = new ModelBookStat{boxBookStat, 0, 0, &lv_font_montserrat_14};
 
     // Ensure UI task is runnng with higher priority
     xTaskCreate(bookLoadingEntry, "bookLoading", 1024 * 10, this, 1, &bookLoadingHandle);
@@ -198,8 +202,11 @@ void IntentBook::onFrequncy()
         Serial.println("IntentBook on frequency");
         Serial.println(bookPage);
 
+        // Display text
         modelText->text = String(bookPage);
         widgetText->upgrade(*modelText);
+
+        widgetBookStat->upgrade(*modelBookStat);
 
         // Reset page shown
         pageShown = true;
@@ -209,7 +216,7 @@ void IntentBook::onFrequncy()
 void IntentBook::onExit()
 {
     Serial.println("IntentBook onExit");
-    lv_joystick_invalidate(true); // Re-inable on input invalidation
+    // lv_joystick_invalidate(true); // Re-inable on input invalidation
 }
 
 ActionResult IntentBook::onAction(ActionArgument arg)
@@ -251,15 +258,26 @@ ActionResult IntentBook::onAction(ActionArgument arg)
 
         // TODO: Resut ignored
         fileManager.readFileToBuffer(pagePathC, bookPage, PAGE_BUFFER_SIZE);
-        modelText->text = bookPage;
 
-        Serial.println("Printing page...");
-        widgetText->upgrade(*modelText);
+        modelText->text = bookPage;
+        modelBookStat->currentPage = pageNum;
 
         // Save last opened page
         cacheModel.curFileIdx = pageNum;
         strlcpy(cacheModel.filePath, pagePathC, sizeof(cacheModel.filePath));
         bool writeResult = directoryCache.write(bookIndexPath, cacheModel);
+
+        // Print values
+        Serial.println("Printing page...");
+
+        // TODO: Add public clear method to the widget to avoid need for deletion
+        delete widgetText;
+        widgetText = new WidgetText(widgetGroup, eventQueue);
+        widgetText->upgrade(*modelText);
+
+        delete widgetBookStat;
+        widgetBookStat = new WidgetBookStat(widgetGroup, eventQueue);
+        widgetBookStat->upgrade(*modelBookStat);
     }
 
     return ActionResult::VOID;

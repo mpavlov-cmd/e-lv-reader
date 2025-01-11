@@ -89,7 +89,7 @@ String TextIndex::index(const char *path)
 			linewidth = lv_txt_get_width(currentLine.c_str(), currentLine.length(), lvFont, 1, lvTextFlag);
 		
 			// Check if the current word fits on the line
-			if (linewidth + spaceWidth + wordWidth >= textAreaWidth - 2)
+			if (linewidth + spaceWidth + wordWidth >= textAreaWidth)
 			{
 				// If the word doesn't fit, print the current line and start a new one
 				currentPage.concat(currentLine);
@@ -251,7 +251,7 @@ void TextIndex::configure(const TextIndex::Conf& conf)
 
     // Calculate lines per page. Find fine one line height 
 	lv_txt_get_size(&sizeRes, "LINE\n\nLINE", lvFont, 1, 1, 480, lvTextFlag);
-	uint8_t lineHeight = sizeRes.y / 3 + 2;
-	linesPerPage  = textAreaHeight / lineHeight - 1; 
+	uint8_t lineHeight = sizeRes.y / 3;
+	linesPerPage  = textAreaHeight / lineHeight; 
 	ESP_LOGV(TAG_INDEX, "Lines per page: %i, line height: %i\n", linesPerPage, lineHeight);
 }
