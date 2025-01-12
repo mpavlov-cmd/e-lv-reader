@@ -81,8 +81,7 @@ class WidgetBookStat : public AbstractWidget<ModelBookStat>
             lv_obj_add_style(tick, &widgetStyle, 0);
 
             // Add the text displaying currentPage/totalPages
-            // TODO: Set font 
-            lv_obj_t* label = lv_label_create(parent);
+            label = lv_label_create(parent);
             lv_label_set_text(label, labelText);
             lv_obj_align(label, LV_ALIGN_RIGHT_MID, -5, 0);
         }

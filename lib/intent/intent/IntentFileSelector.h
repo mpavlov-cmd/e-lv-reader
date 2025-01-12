@@ -1,6 +1,8 @@
 #ifndef INTENTFILESELECTOR_H
 #define INTENTFILESELECTOR_H
 
+#include <esp_log.h>
+#include <LogTags.h>
 #include <AbstractIntent.h>
 #include <IntentIdentifier.h>
 #include <FileManager.h>
@@ -36,13 +38,13 @@ public:
 
     ~IntentFileSelector()
     {
-        Serial.println("IntentFileSelector Destructor Start");
+        ESP_LOGV(TAG_INTNT, "IntentFileSelector Destructor Start");
         delete menu;
         delete widgetMenu;
         if (lv_obj_is_valid(menuParent)) {
             lv_obj_del(menuParent);
         }
-        Serial.println("IntentFileSelector Destructor End");
+        ESP_LOGV(TAG_INTNT, "IntentFileSelector Destructor End");
     }
 
     void onStartUp(IntentArgument arg) override;

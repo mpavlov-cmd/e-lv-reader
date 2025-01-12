@@ -2,7 +2,7 @@
 
 void IntentBook::bookLoadingTask()
 {
-    Serial.println("Book loading task stated");
+    ESP_LOGD(TAG_INTNT, "Book loading task stated");
     uint16_t indexWidth = boxText.width - boxText.padding;
     uint16_t indexHeight = boxText.height - boxText.padding;
 
@@ -15,7 +15,7 @@ void IntentBook::bookLoadingTask()
 
     // Copy path to intent local variabe
     strlcpy(bookIndexPath, textIndexDirPath.c_str(), sizeof(bookIndexPath));
-    Serial.printf("-- Index Generated! Dir: %s --\n", bookIndexPath);
+    ESP_LOGV(TAG_INTNT, "Index Generated! Dir: %s", bookIndexPath);
 
     DirectoryCache::Model dirCacheModel;
     bool hasDirCache = directoryCache.read(bookIndexPath, dirCacheModel);
@@ -27,12 +27,12 @@ void IntentBook::bookLoadingTask()
 
         if (fileIndex.size() == 0)
         {
-            Serial.println("Coud not index directory TODO: Handle this case");
+            ESP_LOGE(TAG_INTNT, "Coud not index directory TODO: Handle this case");
             return;
         }
 
         FileIndex *firstPage = fileIndex.getItem(0);
-        Serial.printf("First page file name: %s\n", firstPage->getName());
+        ESP_LOGV(TAG_INTNT, "First page file name: %s", firstPage->getName());
 
         dirCacheModel.curFileIdx = 0;
         dirCacheModel.totalFiles = fileIndex.size();
@@ -47,7 +47,7 @@ void IntentBook::bookLoadingTask()
         bool writeResult = directoryCache.write(bookIndexPath, dirCacheModel);
         if (!writeResult)
         {
-            Serial.println("Failed to write directory cache");
+            ESP_LOGE(TAG_INTNT, "Failed to write directory cache");
             return;
         }
     }
@@ -62,8 +62,7 @@ void IntentBook::bookLoadingTask()
     modelBookStat->currentPage = dirCacheModel.curFileIdx;
     modelBookStat->totalPages  = dirCacheModel.totalFiles;
 
-    Serial.println("Page:");
-    Serial.println(bookPage);
+    ESP_LOGV(TAG_INTNT, "Page: %s", bookPage);
 
     // Mark page as ready
     pageReady = true;
@@ -175,7 +174,7 @@ IntentBook::IntentBook(QueueHandle_t& mEventQueue, FileManager &fileManager, Tex
 
 void IntentBook::onStartUp(IntentArgument arg)
 {
-    Serial.printf("Book intent started with arg: %s\n", arg.strValue);
+    ESP_LOGD(TAG_INTNT, "Book intent started with arg: %s", arg.strValue);
     strlcpy(bookPath, arg.strValue, sizeof(bookPath));
 
     // Disable invalidate vidget on input
@@ -199,8 +198,7 @@ void IntentBook::onStartUp(IntentArgument arg)
 void IntentBook::onFrequncy()
 {
     if (pageReady && !pageShown) {
-        Serial.println("IntentBook on frequency");
-        Serial.println(bookPage);
+        ESP_LOGV(TAG_INTNT, "IntentBook on frequency");
 
         // Display text
         modelText->text = String(bookPage);
@@ -215,16 +213,16 @@ void IntentBook::onFrequncy()
 
 void IntentBook::onExit()
 {
-    Serial.println("IntentBook onExit");
+    ESP_LOGD(TAG_INTNT, "IntentBook onExit");
     // lv_joystick_invalidate(true); // Re-inable on input invalidation
 }
 
 ActionResult IntentBook::onAction(ActionArgument arg)
 {
-    Serial.println("IntentBook onAction");
+    ESP_LOGV(TAG_INTNT, "IntentBook onAction");
 
     uint32_t key = lv_indev_get_key(lv_get_keypad());
-    Serial.println(key);
+    ESP_LOGD(TAG_INTNT, "Last key input: %i",  key);
 
     // TODO: Temp return home on click, todo: add menu;
     if (arg.code == LV_EVENT_CLICKED)
@@ -234,18 +232,18 @@ ActionResult IntentBook::onAction(ActionArgument arg)
 
     // Handle page up and down
     if (key == LV_KEY_UP || key == LV_KEY_DOWN)  {
-        // Serial.println("Up or down");
+        ESP_LOGD(TAG_INTNT, "Up or down");
     }
 
     // Default page navigation
     if (key == LV_KEY_NEXT || key == LV_KEY_PREV)  {
     
-        Serial.printf("Opening next page for cached book: %s\n", bookPath);
+        ESP_LOGV(TAG_INTNT, "Opening next page for cached book: %s", bookPath);
 
         DirectoryCache::Model cacheModel;
         bool result = directoryCache.read(bookIndexPath, cacheModel);
         if (!result) {
-            Serial.println("Error opening page");
+            ESP_LOGE(TAG_INTNT, "Error opening page");
         }
 
         // TODO: Hande max and min page nums 
@@ -254,7 +252,7 @@ ActionResult IntentBook::onAction(ActionArgument arg)
 
         String pagePath = String(getParentDir(cacheModel.filePath)) + "/._" + String(pageNum) + ".page.txt";
         const char* pagePathC = pagePath.c_str();
-        Serial.printf("Next page path: %s\n", pagePathC);
+        ESP_LOGV(TAG_INTNT, "Next page path: %s", pagePathC);
 
         // TODO: Resut ignored
         fileManager.readFileToBuffer(pagePathC, bookPage, PAGE_BUFFER_SIZE);
@@ -268,7 +266,7 @@ ActionResult IntentBook::onAction(ActionArgument arg)
         bool writeResult = directoryCache.write(bookIndexPath, cacheModel);
 
         // Print values
-        Serial.println("Printing page...");
+        ESP_LOGD(TAG_INTNT, "Printing page...");
 
         // TODO: Add public clear method to the widget to avoid need for deletion
         delete widgetText;

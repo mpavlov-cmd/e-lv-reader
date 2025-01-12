@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include "lvgl.h"
 #include <model/AbstractModel.h>
-#include <model/DPosition.h>
 #include <box/DBox.h>
 
 struct ModelText {

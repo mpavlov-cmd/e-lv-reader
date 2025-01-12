@@ -15,7 +15,7 @@
 #include <ButtonActions.h>
 #include <SleepControl.h>
 
-#include <widget/WidgetBookStat.h>
+#include <widget/WidgetStatus.h>
 
 DBox box = DBox::atCenter(480, 32, 8, 1);
 
@@ -47,46 +47,72 @@ void tearDown(void)
 
 void testRendersOneLineOfText_void(void) {
 
-    // Given
-    WidgetBookStat* bookStat;
+    WidgetStatus* widgetStatus;
     
-    ModelBookStat model = {box, 51, 100, &lv_font_montserrat_14};
-    bookStat = new WidgetBookStat(widgetGroup, eventQueue);
+    // Given 
+    // Unplagged, 3%
+    ModelStatus model = {box, false, false, 3, "00:00", &lv_font_montserrat_18};
+    widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
 
     // When
-    bookStat->upgrade(model);
+    widgetStatus->upgrade(model);
     lv_timer_handler();
 
     // Then
-    delete bookStat;
+    delete widgetStatus;
     delay(1000);
 
-    // ------------------------
+    // ----------------------
 
     // Given
-    model.currentPage = 0;
-    bookStat = new WidgetBookStat(widgetGroup, eventQueue);
+    // Plugged, chargeing
+    widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
+    model.plugged = true;
+    model.charging = true;
+    model.time = "08:30";
 
     // When
-    bookStat->upgrade(model);
+    widgetStatus->upgrade(model);
     lv_timer_handler();
 
     // Then
-    delete bookStat;
+    delete widgetStatus;
     delay(1000);
 
-    // ------------------------
+    // ----------------------
 
     // Given
-    model.currentPage = 100;
-    bookStat = new WidgetBookStat(widgetGroup, eventQueue);
+    // Plugged charge complete
+    widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
+    model.plugged = true;
+    model.charging = false;
+    model.time = "14:00";
 
     // When
-    bookStat->upgrade(model);
+    widgetStatus->upgrade(model);
     lv_timer_handler();
 
     // Then
-    delete bookStat;
+    delete widgetStatus;
+    delay(1000);
+
+     // ----------------------
+
+    // Given
+    // Unplagged, 100%
+    widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
+    model.plugged  = false;
+    model.charging = false;
+    model.batteryLevel = 100;
+    model.time = "23:59";
+
+    // When
+    widgetStatus->upgrade(model);
+    lv_timer_handler();
+
+    // Then
+    delete widgetStatus;
+    delay(1000);
 
     TEST_ASSERT_TRUE(true);
 }

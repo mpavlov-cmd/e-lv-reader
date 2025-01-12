@@ -1,6 +1,9 @@
 #ifndef INTENTBOOK_H
 #define INTENTBOOK_H
 
+#include <esp_log.h>
+#include <LogTags.h>
+
 #include <AbstractIntent.h>
 #include <IntentIdentifier.h>
 #include <freertos/FreeRTOS.h>
@@ -64,10 +67,12 @@ public:
 
     ~IntentBook()
     {
+        ESP_LOGV(TAG_INTNT, "IntentBook destrutor start");
         delete widgetText;
         delete modelText;
         delete widgetBookStat;
         delete modelBookStat;
+        ESP_LOGV(TAG_INTNT, "IntentBook destrutor end");
     }
 };
 
