@@ -34,6 +34,7 @@ void EPD_Dis_Part_Time(
 
 
 void EPD_Dis_Part_RAM(
+    uint16_t command,
     unsigned int x_start,
     unsigned int y_start,
     const unsigned char * datas,

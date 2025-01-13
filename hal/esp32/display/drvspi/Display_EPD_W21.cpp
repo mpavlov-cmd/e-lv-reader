@@ -326,6 +326,7 @@ void EPD_DeepSleep(void)
 
 // Partial refresh write address and data
 void EPD_Dis_Part_RAM(
+    uint16_t command,
     unsigned int x_start,
     unsigned int y_start,
     const unsigned char *datas,
@@ -370,7 +371,7 @@ void EPD_Dis_Part_RAM(
   EPD_W21_WriteDATA(y_start % 256); // y address start2
   EPD_W21_WriteDATA(y_start / 256); // y address start1
 
-  EPD_W21_WriteCMD(0x24); // Write Black and White image to RAM
+  EPD_W21_WriteCMD(command); // Write Black and White image to RAM
   for (i = 0; i < PART_COLUMN * PART_LINE / 8; i++)
   {
     EPD_W21_WriteDATA(datas[i]);
@@ -384,11 +385,11 @@ void EPD_Dis_Part_Time(unsigned int x_startA, unsigned int y_startA, const unsig
                        unsigned int x_startE, unsigned int y_startE, const unsigned char *datasE,
                        unsigned int PART_COLUMN, unsigned int PART_LINE)
 {
-  EPD_Dis_Part_RAM(x_startA, y_startA, datasA, PART_COLUMN, PART_LINE);
-  EPD_Dis_Part_RAM(x_startB, y_startB, datasB, PART_COLUMN, PART_LINE);
-  EPD_Dis_Part_RAM(x_startC, y_startC, datasC, PART_COLUMN, PART_LINE);
-  EPD_Dis_Part_RAM(x_startD, y_startD, datasD, PART_COLUMN, PART_LINE);
-  EPD_Dis_Part_RAM(x_startE, y_startE, datasE, PART_COLUMN, PART_LINE);
+  EPD_Dis_Part_RAM(0x24, x_startA, y_startA, datasA, PART_COLUMN, PART_LINE);
+  EPD_Dis_Part_RAM(0x24, x_startB, y_startB, datasB, PART_COLUMN, PART_LINE);
+  EPD_Dis_Part_RAM(0x24, x_startC, y_startC, datasC, PART_COLUMN, PART_LINE);
+  EPD_Dis_Part_RAM(0x24, x_startD, y_startD, datasD, PART_COLUMN, PART_LINE);
+  EPD_Dis_Part_RAM(0x24, x_startE, y_startE, datasE, PART_COLUMN, PART_LINE);
   EPD_Part_Update();
 }
 

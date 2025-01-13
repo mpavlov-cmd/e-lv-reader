@@ -37,16 +37,6 @@ void lv_joystick_indev_init(void)
     inputHandler.configure(isr, 100, 2500);
 }
 
-void lv_joystick_invalidate(bool enabled)
-{
-    invalidateOnInput = enabled;
-}
-
-void lv_joystick_active_object(lv_obj_t *object)
-{
-    active_object = object;
-}
-
 lv_indev_t* lv_get_keypad(void)
 {
     return indev_keypad;
@@ -71,12 +61,6 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
     if (switchInput) {
 
         ESP_LOGD(TAG_INPUT, "Button Pressed");
-
-        // TODO: Come up with better optimization
-        if (invalidateOnInput) {
-            lv_obj_t* to_invalidate = active_object == nullptr ? lv_scr_act() : active_object;
-            lv_obj_invalidate(to_invalidate);
-        }
 
         // Mark btn as pressed 
         data->state = LV_INDEV_STATE_PRESSED;

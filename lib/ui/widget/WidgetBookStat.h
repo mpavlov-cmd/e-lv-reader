@@ -51,6 +51,15 @@ class WidgetBookStat : public AbstractWidget<ModelBookStat>
 
             lv_style_set_border_width(&widgetStyle, 0);
             lv_style_set_radius(&widgetStyle, 0);
+
+            line = lv_obj_create(parent);
+            lv_obj_align(line, LV_ALIGN_LEFT_MID, 0, 0);
+            lv_obj_add_style(line, &widgetStyle, 0);
+
+            tick = lv_obj_create(parent);
+            lv_obj_add_style(tick, &widgetStyle, 0);
+
+            label = lv_label_create(parent);
         }
 
         void print(ModelBookStat& widgetData) override
@@ -64,10 +73,7 @@ class WidgetBookStat : public AbstractWidget<ModelBookStat>
             lv_coord_t labelCoord = lv_txt_get_width(labelText, labelTextStr.length(), widgetData.lvFont, 1, LV_TEXT_FLAG_NONE);
             uint16_t barWidth = box.width - box.padding * 2 - labelCoord - 16;
 
-            line = lv_obj_create(parent);
-            lv_obj_set_size(line, barWidth, 2);  
-            lv_obj_align(line, LV_ALIGN_LEFT_MID, 0, 0);
-            lv_obj_add_style(line, &widgetStyle, 0);
+            lv_obj_set_size(line, barWidth, 2);
 
              // Calculate tick position based on the current page
             uint16_t tickWidth  = 2; 
@@ -75,13 +81,10 @@ class WidgetBookStat : public AbstractWidget<ModelBookStat>
             uint16_t tickPositionX = (widgetData.currentPage * barWidth) / widgetData.totalPages;
             uint16_t tickPositionY = (box.height - box.padding * 2 - box.border * 2) / 2 - tickHeight / 2;
 
-            tick = lv_obj_create(parent);
             lv_obj_set_size(tick, tickWidth, tickHeight);
             lv_obj_set_pos(tick, tickPositionX, tickPositionY);
-            lv_obj_add_style(tick, &widgetStyle, 0);
 
             // Add the text displaying currentPage/totalPages
-            label = lv_label_create(parent);
             lv_label_set_text(label, labelText);
             lv_obj_align(label, LV_ALIGN_RIGHT_MID, -5, 0);
         }

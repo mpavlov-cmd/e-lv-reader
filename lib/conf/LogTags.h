@@ -12,6 +12,7 @@
 #define TAG_WIDGT "WIDGET"
 #define TAG_INTNT "INETNT"
 #define TAG_INDEX "INDEX"
+#define TAG_STAT  "STATUS"
 
 
 #endif // LOG_TAGS_H

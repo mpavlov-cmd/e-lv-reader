@@ -10,6 +10,15 @@
 #include "drvspi/Display_EPD_W21_spi.h"
 #include "drvspi/Display_EPD_W21.h"
 
+// Strct definiton
+struct BufferData {
+    unsigned char* buffer;  // Pointer to the buffer
+    int x;                  // x-coordinate
+    int y;                  // y-coordinate
+    int width;              // Width of the buffer
+    int height;             // Height of the buffer
+};
+
 // Function definitions
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 void epd_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
@@ -20,6 +29,8 @@ void epd_set_px_cb_new(struct _lv_disp_drv_t * disp_drv, uint8_t * buf, lv_coord
     lv_color_t color, lv_opa_t opa);
 
 void tick_timer_callback(void *arg);
+
+#define MY_DISP_MAX_BUFFERS 30
 
 #ifndef MY_DISP_HOR_RES
 #define MY_DISP_HOR_RES 480
@@ -41,6 +52,9 @@ static lv_disp_t* disp;
 // TODO: Figure out why moving this counter causes MCU boot failure
 uint16_t chunkCounter = 0;
 bool forceDispRefresh = false;
+
+static BufferData* bufferCollection = nullptr;
+int bufferCount = 0; // To track the number of stored buffers
 
 /**
  * Requires SPI to be initialized 
@@ -125,7 +139,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
     ESP_LOGV(TAG_DISPL, "Start pos: %ix%i", area->x1, area->y1);
 
     // Prepare a buffer to store the e-paper-compatible image data
-    unsigned char epd_buffer[(width * height) / 8];
+    unsigned char* epd_buffer = new unsigned char[(width * height) / 8];
     memset(epd_buffer, 0XFF, sizeof(epd_buffer)); // Initialize to white
     ESP_LOGV(TAG_DISPL, "Size of buffer: %i", sizeof(epd_buffer));
 
@@ -169,16 +183,40 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
             EPD_SetRAMValue_Empty_BaseMap();
             forceDispRefresh = false;
         }
+
+        bufferCollection = new BufferData[MY_DISP_MAX_BUFFERS];
     }
 
     ESP_LOGV(TAG_DISPL, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
-    EPD_Dis_Part_RAM(area->y1, area->x1, epd_buffer, width, height);
+    EPD_Dis_Part_RAM(0x24, area->y1, area->x1, epd_buffer, width, height);
     chunkCounter++;
 
-    // if (chunkCounter == 10) {
+    // Add buffer to collection:
+    bufferCollection[bufferCount++] = {epd_buffer, area->x1, area->y1, width, height};
+    ESP_LOGV(TAG_DISPL, "Added buffer to collection: %i", bufferCount);
+
     if (lv_disp_flush_is_last(disp_drv)) {
-        chunkCounter = 0;
+
+        // Update display with already stored display data
         EPD_Part_Update();
+
+        // Fill buffers for next refresh
+        for (int i = 0; i < bufferCount; i++) {
+            ESP_LOGV(TAG_DISPL, "Writhing stored buffer data forthe next operation: %i", i);
+
+            BufferData cbd = bufferCollection[i];
+            EPD_Dis_Part_RAM(0x26, cbd.y, cbd.x, cbd.buffer, cbd.width, cbd.height);
+            EPD_Dis_Part_RAM(0x24, cbd.y, cbd.x, cbd.buffer, cbd.width, cbd.height);
+
+            ESP_LOGV(TAG_DISPL, "Deleting buffer from collection: %i, height: %i", bufferCount);
+            delete[] bufferCollection[i].buffer;
+        }
+
+        delete[] bufferCollection;
+        bufferCollection = nullptr;
+        chunkCounter = 0;
+        bufferCount  = 0;
+
         EPD_DeepSleep();
         ESP_LOGD(TAG_DISPL, "--- Flush completed ---");
     }
@@ -246,7 +284,7 @@ void epd_flush_cb_new(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color
     }
 
     ESP_LOGD(TAG_DISPL, "--- x1,y1: %ix%i width: %i, height: %i ---", area->x1, area->y1, width, height);
-    EPD_Dis_Part_RAM(area->y1, area->x1, testBuf, width, height);
+    EPD_Dis_Part_RAM(0x24, area->y1, area->x1, testBuf, width, height);
     chunkCounter++;
 
     // if (chunkCounter == 10) {

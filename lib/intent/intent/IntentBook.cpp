@@ -269,12 +269,12 @@ ActionResult IntentBook::onAction(ActionArgument arg)
         ESP_LOGD(TAG_INTNT, "Printing page...");
 
         // TODO: Add public clear method to the widget to avoid need for deletion
-        delete widgetText;
-        widgetText = new WidgetText(widgetGroup, eventQueue);
+        // delete widgetText;
+        // widgetText = new WidgetText(widgetGroup, eventQueue);
         widgetText->upgrade(*modelText);
 
-        delete widgetBookStat;
-        widgetBookStat = new WidgetBookStat(widgetGroup, eventQueue);
+        // delete widgetBookStat;
+        // widgetBookStat = new WidgetBookStat(widgetGroup, eventQueue);
         widgetBookStat->upgrade(*modelBookStat);
     }
 

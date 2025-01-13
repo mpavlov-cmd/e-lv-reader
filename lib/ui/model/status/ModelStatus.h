@@ -12,6 +12,7 @@ struct ModelStatus
     bool charging;
     uint8_t batteryLevel;
     String time;
+    const char* extra;
     
     const lv_font_t* lvFont;
 };

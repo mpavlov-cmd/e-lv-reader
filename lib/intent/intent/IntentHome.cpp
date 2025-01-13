@@ -21,7 +21,6 @@ void IntentHome::onStartUp(IntentArgument arg)
 
 	// Create widgets
 	menuParent = lv_obj_create(lv_scr_act());
-	lv_joystick_active_object(menuParent);
 
 	widgetMenu = new WidgetMenu(widgetGroup, menuParent, eventQueue);
 	widgetMenu->upgrade(*menu);
@@ -35,8 +34,6 @@ void IntentHome::onFrequncy()
 void IntentHome::onExit()
 {
 	ESP_LOGD(TAG_INTNT, "IntentHome::onExit");
-	// Remove optimztion: set objet to null
-	lv_joystick_active_object(nullptr);
 }
 
 ActionResult IntentHome::onAction(ActionArgument arg)

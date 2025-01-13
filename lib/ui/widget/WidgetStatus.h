@@ -15,8 +15,11 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
             if (lv_obj_is_valid(labelBattInd)) {
                 lv_obj_del(labelBattInd);
             }
-             if (lv_obj_is_valid(labelPlugInd)) {
+            if (lv_obj_is_valid(labelPlugInd)) {
                 lv_obj_del(labelPlugInd);
+            }
+            if (lv_obj_is_valid(labelAdExtra)) {
+                lv_obj_del(labelAdExtra);
             }
             lv_style_reset(&widgetStyle);
             lv_style_reset(&battIndStyle);
@@ -28,6 +31,7 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
         lv_obj_t* labelTimeInd = nullptr;
         lv_obj_t* labelBattInd = nullptr;
         lv_obj_t* labelPlugInd = nullptr;
+        lv_obj_t* labelAdExtra = nullptr;
 
         lv_style_t widgetStyle;
         lv_style_t battIndStyle;
@@ -70,8 +74,6 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
 
         void print(ModelStatus& widgetData) override
         {
-            // LV_SYMBOL_CHARGE
-
             // Add the text displaying currentPage/totalPages
             const char* battIndContent;
             String percentStrValue;
@@ -104,6 +106,12 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
             lv_obj_set_width(labelTimeInd, clockWidth);
             lv_label_set_text(labelTimeInd, widgetData.time.c_str());
             lv_obj_align(labelTimeInd, LV_ALIGN_LEFT_MID, 0, 0);
+
+            if (widgetData.extra != nullptr) {
+                labelAdExtra = lv_label_create(parent);
+                lv_label_set_text(labelAdExtra, widgetData.extra);
+                lv_obj_align_to(labelAdExtra, labelTimeInd, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+            }
         }
 };
 

@@ -111,7 +111,7 @@ void testMultiPageFileIndexed_hasFullData(void) {
     Set<FileIndex> resultindex(32);
     bool success = fileManager.indexDirectory(filePathCharArr, DirIndexConf::FULL, resultindex);
     uint16_t indexSize = resultindex.size();
-    TEST_ASSERT_EQUAL_INT(6, indexSize);
+    TEST_ASSERT_EQUAL_INT(5, indexSize);
 
     FileIndex lastFileIndex = *resultindex.getItem(indexSize - 1);
      

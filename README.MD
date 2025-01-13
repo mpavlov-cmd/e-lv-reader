@@ -1,5 +1,13 @@
 # ESP32 E-Reader Project 
 
+## GxEPD Driver
+- GxEPD2_426_GDEQ0426T82.h
+- GxEPD2_426_GDEQ0426T82.cpp
+
+## PS Ram support (No)
+- Chip Used: ESP32-D0WD-V3
+- Chip with PSRAM: ESP32-D0WDR2-V3 (R - has ram, 2 - size in megs)
+
 ## Log Levels
 ```ini
 build_flags =

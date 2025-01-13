@@ -22,12 +22,17 @@
 #include "text/TextIndex.h"
 #include "cache/DirectoryCache.h"
 
+
 // Intents 
 #include "AbstractIntent.h"
 #include "intent/IntentHome.h"
 #include "intent/IntentSleep.h"
 #include "intent/IntentFileSelector.h"
 #include "intent/IntentBook.h"
+
+#include "status/StatusManager.h"
+
+#define STATUS_FREQUENCY 10000
 
 // Function definitions
 void blink(void* pvParameters);
@@ -44,7 +49,6 @@ SleepControlConf sleepCtrlConf = {GPIO_SEL_34 | GPIO_SEL_36 | GPIO_SEL_39, ESP_E
 SleepControl sleepControl(sleepCtrlConf);
 
 // Initialize Event Queue for MVC logc 
-volatile bool lvglTimerEnabled = true;
 QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));
 QueueHandle_t freqencyQueue = xQueueCreate(1, sizeof(uint8_t));; 
 
@@ -52,6 +56,8 @@ ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
 TextIndex textIndex(fileManager);
 DirectoryCache directoryCache(fileManager);
+
+StatusManager* statusManager;
 
 TaskHandle_t intentFreqHandle = NULL;
 AbstractIntent* intentCurrent = nullptr;
@@ -81,14 +87,23 @@ void hal_setup(void)
     // Init lv file system 
     lv_arduino_fs_init();
 
+    log_d("Chip Name: %s", ESP.getChipModel());
+
     // Create event queue adnd frequency tasks 
     void *queues[2] = { eventQueue, freqencyQueue };
     xTaskCreate(eventQueueTask, "uiTask", 4096 * 2, queues, 1, nullptr);
     xTaskCreate(taskIntentFreq, "intentFreq", 2048, freqencyQueue, 1, &intentFreqHandle);
 
+    // Status manager
+    // statusManager = new StatusManager(eventQueue);
+    // IntentArgument statusManagerArg(STATUS_FREQUENCY);
+    // statusManager->onStartUp(statusManagerArg);
+
     // Lunch intent mechaism
-    IntentArgument arg("/books/water.txt");
     buildIntent(INTENT_ID_BOOK);
+    IntentArgument arg("/books/water.txt");
+
+    // buildIntent(INTENT_ID_HOME);
     intentCurrent->onStartUp(arg);
     
     // create_black_square(lv_scr_act());    
@@ -149,15 +164,14 @@ void eventQueueTask(void *pvParameters)
             ESP_LOGV(TAG_MAIN, "Executing inetent frequency task");
 
             // Account for intent init
+            // statusManager->onFrequncy();
             intentCurrent->onFrequncy();
         }
 
         // Check if actions were prformed
         if (xQueueReceive(eventQueue, &actionArgument, pdMS_TO_TICKS(5)) == pdPASS)
         {
-            // Do not feed lvgl until event is processed
-            lvglTimerEnabled = false;
-
+    
             // ESP_LOGD(TAG_MAIN, "Received event: target=%p, code=%d", actionArg.target, actionArg.code);
             ActionResult result = intentCurrent->onAction(actionArgument);
 
@@ -167,11 +181,8 @@ void eventQueueTask(void *pvParameters)
                 lv_epd_mark_full();
                 switchIntent(result.id, result.data);
 		    }
-
-            lvglTimerEnabled = true;
         }
 
-        // Update the UI
         lv_timer_handler(); 
     }
 }

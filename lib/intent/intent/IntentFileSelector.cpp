@@ -47,7 +47,6 @@ void IntentFileSelector::prepareAndRnderDir(const char *path)
 
     // Create widgets
 	menuParent = lv_obj_create(lv_scr_act());
-	lv_joystick_active_object(menuParent);
 
     widgetMenu = new WidgetMenu(widgetGroup, menuParent, eventQueue);
     widgetMenu->upgrade(*menu);
@@ -64,6 +63,7 @@ void IntentFileSelector::onStartUp(IntentArgument arg)
     const char* rootPath = arg.strValue == nullptr ? "/" : arg.strValue;
 
     prepareAndRnderDir(rootPath);
+    ESP_LOGV(TAG_INTNT, "Intent FileSelector On Startup End");
 }
 
 void IntentFileSelector::onFrequncy()
@@ -74,7 +74,6 @@ void IntentFileSelector::onFrequncy()
 void IntentFileSelector::onExit()
 {
     ESP_LOGD(TAG_INTNT, "IntentFileSelector::onExit");
-    lv_joystick_active_object(nullptr);
 }
 
 ActionResult IntentFileSelector::onAction(ActionArgument arg)
@@ -119,6 +118,7 @@ ActionResult IntentFileSelector::onAction(ActionArgument arg)
         }
 
         // File is directory cleanup and restart
+        // TODO: Review menu widget impl to avoid deletion
         delete menu;
         delete widgetMenu;
         if (lv_obj_is_valid(menuParent)) {
