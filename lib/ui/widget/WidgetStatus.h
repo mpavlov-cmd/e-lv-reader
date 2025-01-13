@@ -70,6 +70,19 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
             lv_style_init(&battIndStyle);
             lv_style_set_text_align(&battIndStyle, LV_TEXT_ALIGN_CENTER);
 
+            labelBattInd = lv_label_create(parent);
+            lv_obj_add_style(labelBattInd, &battIndStyle, 0);
+            lv_obj_set_width(labelBattInd, battPercentWidth);
+            lv_obj_align(labelBattInd, LV_ALIGN_RIGHT_MID, 0, 0);
+
+            labelTimeInd = lv_label_create(parent);
+            lv_obj_set_width(labelTimeInd, clockWidth);
+            lv_obj_align(labelTimeInd, LV_ALIGN_LEFT_MID, 0, 0);
+
+            labelPlugInd = lv_label_create(parent);
+            lv_label_set_text(labelPlugInd, LV_SYMBOL_USB);
+
+            labelAdExtra = lv_label_create(parent);
         }
 
         void print(ModelStatus& widgetData) override
@@ -89,28 +102,27 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
                 }
             }
 
-            labelBattInd = lv_label_create(parent);
-            lv_obj_set_width(labelBattInd, battPercentWidth);
+            // Change battery indicator
             lv_label_set_text(labelBattInd, battIndContent);
-            lv_obj_add_style(labelBattInd, &battIndStyle, 0);
 
-            lv_obj_align(labelBattInd, LV_ALIGN_RIGHT_MID, 0, 0);
-
+            // Show or hide plagged flag
+            lv_obj_align_to(labelPlugInd, labelBattInd, LV_ALIGN_OUT_LEFT_MID, 0, 0);
             if (widgetData.plugged) {
-                labelPlugInd = lv_label_create(parent);
-                lv_label_set_text(labelPlugInd, LV_SYMBOL_USB);
-                lv_obj_align_to(labelPlugInd, labelBattInd, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+                lv_obj_clear_flag(labelPlugInd, LV_OBJ_FLAG_HIDDEN);
+            } else {
+                lv_obj_add_flag(labelPlugInd, LV_OBJ_FLAG_HIDDEN);
             }
 
-            labelTimeInd = lv_label_create(parent);
-            lv_obj_set_width(labelTimeInd, clockWidth);
+            // Show updatedd time 
             lv_label_set_text(labelTimeInd, widgetData.time.c_str());
-            lv_obj_align(labelTimeInd, LV_ALIGN_LEFT_MID, 0, 0);
+            
+            // Align and show extra object
+            lv_obj_align_to(labelAdExtra, labelTimeInd, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
 
             if (widgetData.extra != nullptr) {
-                labelAdExtra = lv_label_create(parent);
                 lv_label_set_text(labelAdExtra, widgetData.extra);
-                lv_obj_align_to(labelAdExtra, labelTimeInd, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+            } else {
+                lv_label_set_text(labelAdExtra, "");
             }
         }
 };

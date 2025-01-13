@@ -23,10 +23,11 @@ struct BufferData {
 void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 void epd_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
 
-// TODO: For further optiization
+#ifdef EPD_FLUSH_REWORK
 void epd_flush_cb_new(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 void epd_set_px_cb_new(struct _lv_disp_drv_t * disp_drv, uint8_t * buf, lv_coord_t buf_w, lv_coord_t x, lv_coord_t y,
     lv_color_t color, lv_opa_t opa);
+#endif
 
 void tick_timer_callback(void *arg);
 
@@ -44,7 +45,7 @@ void tick_timer_callback(void *arg);
 // Static or global buffer(s). The second buffer is optional
 static lv_disp_draw_buf_t draw_buf_dsc_1;
 static lv_color_t buf_1[MY_DISP_HOR_RES * 32];
-static lv_color_t buf_2[MY_DISP_HOR_RES * 32];
+// static lv_color_t buf_2[MY_DISP_HOR_RES * 32];
 
 static lv_disp_drv_t disp_drv; 
 static lv_disp_t* disp;   
@@ -80,7 +81,7 @@ void lv_epd_disp_init(void)
     // ----- DISPLAY DRIVER INIT START -----
 
     // ------ Start display config ------
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, buf_2, MY_DISP_HOR_RES * 32);  
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 32);  
     lv_disp_drv_init(&disp_drv);                   
 
     /*Set up the functions to access to your display*/
@@ -193,7 +194,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
 
     // Add buffer to collection:
     bufferCollection[bufferCount++] = {epd_buffer, area->x1, area->y1, width, height};
-    ESP_LOGV(TAG_DISPL, "Added buffer to collection: %i", bufferCount);
+    ESP_LOGD(TAG_DISPL, "Added buffer to collection: %i", bufferCount);
 
     if (lv_disp_flush_is_last(disp_drv)) {
 
@@ -202,13 +203,13 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
 
         // Fill buffers for next refresh
         for (int i = 0; i < bufferCount; i++) {
-            ESP_LOGV(TAG_DISPL, "Writhing stored buffer data forthe next operation: %i", i);
+            ESP_LOGD(TAG_DISPL, "Writhing stored buffer data forthe next operation: %i", i);
 
             BufferData cbd = bufferCollection[i];
             EPD_Dis_Part_RAM(0x26, cbd.y, cbd.x, cbd.buffer, cbd.width, cbd.height);
             EPD_Dis_Part_RAM(0x24, cbd.y, cbd.x, cbd.buffer, cbd.width, cbd.height);
 
-            ESP_LOGV(TAG_DISPL, "Deleting buffer from collection: %i, height: %i", bufferCount);
+            ESP_LOGD(TAG_DISPL, "Deleting buffer from collection: %i", bufferCount);
             delete[] bufferCollection[i].buffer;
         }
 
@@ -243,7 +244,7 @@ void tick_timer_callback(void *arg) {
     lv_tick_inc(1); 
 }
 
-// TODO: For optimization purposes
+#ifdef EPD_FLUSH_REWORK
 void epd_flush_cb_new(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     ESP_LOGD(TAG_DISPL, "--- Flush Start ---");
@@ -300,7 +301,6 @@ void epd_flush_cb_new(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color
     lv_disp_flush_ready(disp_drv); /* tell lvgl that flushing is done */
 }
 
-// TODO: For optimization purposes
 void epd_set_px_cb_new(_lv_disp_drv_t *disp_drv, uint8_t *buf, lv_coord_t buf_w, lv_coord_t x, lv_coord_t y,
     lv_color_t color, lv_opa_t opa)
 {
@@ -329,3 +329,4 @@ void epd_set_px_cb_new(_lv_disp_drv_t *disp_drv, uint8_t *buf, lv_coord_t buf_w,
         buf[bufIdxCmp] |= (1 << (7 - bufIdxPos)); // Set white pixel
     }
 }
+#endif

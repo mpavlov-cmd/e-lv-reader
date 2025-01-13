@@ -49,6 +49,9 @@ private:
 
     void print(Menu& widgetData) override
     {
+        // Clean any existing items
+        lv_obj_clean(list);
+
         Set<MenuItem> &menuItems = widgetData.getItemsSet();
         lv_list_add_text(list, widgetData.getTitle());
 
