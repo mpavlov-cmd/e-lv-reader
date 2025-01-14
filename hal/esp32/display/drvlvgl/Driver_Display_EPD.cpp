@@ -194,7 +194,7 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
 
     // Add buffer to collection:
     bufferCollection[bufferCount++] = {epd_buffer, area->x1, area->y1, width, height};
-    ESP_LOGD(TAG_DISPL, "Added buffer to collection: %i", bufferCount);
+    ESP_LOGV(TAG_DISPL, "Added buffer to collection: %i", bufferCount);
 
     if (lv_disp_flush_is_last(disp_drv)) {
 
@@ -203,13 +203,13 @@ void epd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t *
 
         // Fill buffers for next refresh
         for (int i = 0; i < bufferCount; i++) {
-            ESP_LOGD(TAG_DISPL, "Writhing stored buffer data forthe next operation: %i", i);
+            ESP_LOGV(TAG_DISPL, "Writhing stored buffer data forthe next operation: %i", i);
 
             BufferData cbd = bufferCollection[i];
             EPD_Dis_Part_RAM(0x26, cbd.y, cbd.x, cbd.buffer, cbd.width, cbd.height);
             EPD_Dis_Part_RAM(0x24, cbd.y, cbd.x, cbd.buffer, cbd.width, cbd.height);
 
-            ESP_LOGD(TAG_DISPL, "Deleting buffer from collection: %i", bufferCount);
+            ESP_LOGV(TAG_DISPL, "Deleting buffer from collection: %i", bufferCount);
             delete[] bufferCollection[i].buffer;
         }
 

@@ -89,22 +89,22 @@ void hal_setup(void)
 
     log_d("Chip Name: %s", ESP.getChipModel());
 
+    // Status manager
+    statusManager = new StatusManager(eventQueue);
+    IntentArgument statusManagerArg(STATUS_FREQUENCY);
+    statusManager->onStartUp(statusManagerArg);
+
+    // Lunch intent mechaism
+    // buildIntent(INTENT_ID_BOOK);
+    // IntentArgument arg("/books/water.txt");
+
+    buildIntent(INTENT_ID_HOME);
+    intentCurrent->onStartUp(IntentArgument::NO_ARG);
+    
     // Create event queue adnd frequency tasks 
     void *queues[2] = { eventQueue, freqencyQueue };
     xTaskCreate(eventQueueTask, "uiTask", 4096 * 2, queues, 1, nullptr);
     xTaskCreate(taskIntentFreq, "intentFreq", 2048, freqencyQueue, 1, &intentFreqHandle);
-
-    // Status manager
-    // statusManager = new StatusManager(eventQueue);
-    // IntentArgument statusManagerArg(STATUS_FREQUENCY);
-    // statusManager->onStartUp(statusManagerArg);
-
-    // Lunch intent mechaism
-    buildIntent(INTENT_ID_BOOK);
-    IntentArgument arg("/books/water.txt");
-
-    // buildIntent(INTENT_ID_HOME);
-    intentCurrent->onStartUp(arg);
     
     // create_black_square(lv_scr_act());    
 }
@@ -164,7 +164,7 @@ void eventQueueTask(void *pvParameters)
             ESP_LOGV(TAG_MAIN, "Executing inetent frequency task");
 
             // Account for intent init
-            // statusManager->onFrequncy();
+            statusManager->onFrequncy();
             intentCurrent->onFrequncy();
         }
 

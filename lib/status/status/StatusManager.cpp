@@ -25,14 +25,11 @@ void StatusManager::onFrequncy()
     unsigned long time = millis();
     if (time - lastExecution > frequency) {
         ESP_LOGD(TAG_STAT, "StatusManager::onFrequncy");
-
+        
+        modelStatus->extra = "ZZZ";
+        widgetStatus->upgrade(*modelStatus);
         lastExecution = time;
-    }
-   
-
-    // delete widgetStatus;
-    // widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
-    // widgetStatus->upgrade(*modelStatus);
+    }   
 }
 
 void StatusManager::onExit()
