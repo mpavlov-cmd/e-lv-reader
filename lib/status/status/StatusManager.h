@@ -16,6 +16,7 @@ private:
 
     WidgetStatus* widgetStatus = nullptr; 
     ModelStatus* modelStatus = nullptr;
+    lv_obj_t* widgetParent = nullptr;
 
     uint16_t frequency = 0;
     unsigned long lastExecution = 0;
@@ -29,6 +30,9 @@ public:
     {
         delete modelStatus;
         delete widgetStatus;
+        if (lv_obj_is_valid(widgetParent)) {
+            lv_obj_del(widgetParent);
+        } 
     }
 
     void onStartUp(IntentArgument arg) override;

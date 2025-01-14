@@ -180,6 +180,8 @@ void eventQueueTask(void *pvParameters)
                 // Force full refresh on change intent
                 lv_epd_mark_full();
                 switchIntent(result.id, result.data);
+                // Refresh status manager
+                statusManager->onAction(actionArgument);
 		    }
         }
 

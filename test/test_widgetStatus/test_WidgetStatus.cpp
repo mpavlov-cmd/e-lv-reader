@@ -51,7 +51,7 @@ void testRendersOneLineOfText_void(void) {
     
     // Given 
     // Unplagged, 3%
-    ModelStatus model = {box, false, false, 3, "00:00", nullptr, &lv_font_montserrat_18};
+    ModelStatus model = {box, false, false, 3, "00:00", "", &lv_font_montserrat_18};
     widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
 
     // When
@@ -87,7 +87,7 @@ void testRendersOneLineOfText_void(void) {
     model.plugged = true;
     model.charging = false;
     model.time = "14:00";
-    model.extra = LV_SYMBOL_WARNING;
+    strncpy(model.extra, LV_SYMBOL_WARNING, sizeof(model.extra));
 
     // When
     widgetStatus->upgrade(model);
@@ -97,7 +97,7 @@ void testRendersOneLineOfText_void(void) {
     delete widgetStatus;
     delay(1000);
 
-     // ----------------------
+    // ----------------------
 
     // Given
     // Unplagged, 100%
@@ -106,7 +106,7 @@ void testRendersOneLineOfText_void(void) {
     model.charging = false;
     model.batteryLevel = 100;
     model.time = "23:59";
-    model.extra = LV_SYMBOL_ENVELOPE;
+    strncpy(model.extra, LV_SYMBOL_ENVELOPE, sizeof(model.extra));
 
     // When
     widgetStatus->upgrade(model);

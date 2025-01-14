@@ -7,8 +7,11 @@
 class WidgetStatus : public AbstractWidget<ModelStatus>
 {
     public:
+        WidgetStatus(lv_group_t* wGroup, lv_obj_t* widgetParent, QueueHandle_t& mEventQueue) 
+            : AbstractWidget(wGroup, widgetParent, mEventQueue) {}
+
         WidgetStatus(lv_group_t* wGroup, QueueHandle_t& mEventQueue) 
-            : AbstractWidget(wGroup, mEventQueue) {}
+            : WidgetStatus(wGroup, nullptr, mEventQueue) {}
         
         ~WidgetStatus() override {
             ESP_LOGD(TAG_WIDGT, "WidgetStatus destructor start");
@@ -119,7 +122,7 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
             // Align and show extra object
             lv_obj_align_to(labelAdExtra, labelTimeInd, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
 
-            if (widgetData.extra != nullptr) {
+            if (strcmp(widgetData.extra, emptyString.c_str())  != 0) {
                 lv_label_set_text(labelAdExtra, widgetData.extra);
             } else {
                 lv_label_set_text(labelAdExtra, "");

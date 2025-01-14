@@ -12,8 +12,9 @@ void StatusManager::onStartUp(IntentArgument arg)
     frequency = arg.intValue;
     lastExecution = millis();
 
-    modelStatus = new ModelStatus{boxStatus, false, false, 3, "00:00", nullptr, &lv_font_montserrat_18};
-    widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
+    widgetParent = lv_obj_create(lv_scr_act());
+    modelStatus = new ModelStatus{boxStatus, false, false, 3, "00:00", "", &lv_font_montserrat_18};
+    widgetStatus = new WidgetStatus(widgetGroup, widgetParent, eventQueue);
     widgetStatus->upgrade(*modelStatus);
 
     // Create and run the timer
@@ -25,8 +26,7 @@ void StatusManager::onFrequncy()
     unsigned long time = millis();
     if (time - lastExecution > frequency) {
         ESP_LOGD(TAG_STAT, "StatusManager::onFrequncy");
-        
-        modelStatus->extra = "ZZZ";
+        strncpy(modelStatus->extra, String(time).c_str(), sizeof(modelStatus->extra));
         widgetStatus->upgrade(*modelStatus);
         lastExecution = time;
     }   
@@ -39,6 +39,8 @@ void StatusManager::onExit()
 
 ActionResult StatusManager::onAction(ActionArgument arg)
 {
+    // Invalidate object to force reresh widget e.g., during change intent
+    lv_obj_invalidate(widgetParent);
     return ActionResult::VOID;
 }
 
