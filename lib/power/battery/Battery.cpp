@@ -77,9 +77,9 @@ uint16_t Battery::voltage(uint8_t msDelay) {
 	float voltageread = (analogRead(sensePin) / (double) adc) * ((double)refVoltage / 1000) * (1100 / vrefESP) * ESP_CALIBRATION;
 	uint16_t reading = voltageread * 1000 * dividerRatio;
 
-	ESP_LOGD(TAG_POWER, "ESP Ref: %i", vrefESP);
-	ESP_LOGD(TAG_POWER, "Calibrated voltage: %i", (voltageread * 1000));
-	ESP_LOGD(TAG_POWER, "Voltage resut: %i", reading);
+	ESP_LOGV(TAG_POWER, "ESP Ref: %f", vrefESP);
+	ESP_LOGV(TAG_POWER, "Calibrated voltage: %f", (voltageread * 1000));
+	ESP_LOGV(TAG_POWER, "Voltage resut: %i", reading);
 
 	if (activationPin != 0xFF) {
 		digitalWrite(activationPin, !activationMode);

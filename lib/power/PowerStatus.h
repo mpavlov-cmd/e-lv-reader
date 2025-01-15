@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <ESP32Time.h>
-// #include "Battery.h"
+#include "battery/Battery.h"
 
 enum ChargeingStatus { NC, CHARGING, FULL };
 
@@ -25,7 +25,7 @@ struct PowerStatus
         const uint16_t VOLTAGE_MAX_MILLIVOLTS = 4200;
         const uint8_t ADC_RESOLUTION          = 12;
 
-        // Battery battery;
+        Battery battery;
         uint8_t powerSensePin;
         uint8_t chargeStatusPin;
 
@@ -35,14 +35,10 @@ struct PowerStatus
         boolean getConnected();
         uint8_t getBatteryLevelPercent();
         ChargeingStatus getChargingStatus();
-        // uint16_t getBatteryVoltage();
+        uint16_t getBatteryVoltage();
 
     public:
-        PowerStatus(
-            uint8_t powerSensePin,
-            uint8_t chargeStatusPin, 
-            uint8_t batterySensePin
-        );
+        PowerStatus(uint8_t powerSensePin, uint8_t chargeStatusPin, uint8_t batterySensePin);
 
         PowerMetrics measure();
 };

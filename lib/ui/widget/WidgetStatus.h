@@ -15,6 +15,9 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
         
         ~WidgetStatus() override {
             ESP_LOGD(TAG_WIDGT, "WidgetStatus destructor start");
+             if (lv_obj_is_valid(labelTimeInd)) {
+                lv_obj_del(labelTimeInd);
+            }
             if (lv_obj_is_valid(labelBattInd)) {
                 lv_obj_del(labelBattInd);
             }
@@ -117,7 +120,7 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
             }
 
             // Show updatedd time 
-            lv_label_set_text(labelTimeInd, widgetData.time.c_str());
+            lv_label_set_text(labelTimeInd, widgetData.time);
             
             // Align and show extra object
             lv_obj_align_to(labelAdExtra, labelTimeInd, LV_ALIGN_OUT_RIGHT_MID, 0, 0);

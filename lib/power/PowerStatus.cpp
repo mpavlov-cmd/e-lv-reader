@@ -5,7 +5,7 @@ PowerStatus::PowerStatus(
     uint8_t chargeStatusPin,
     uint8_t batterySensePin
 ) : 
-        // battery(VOLTAGE_MIN_MILLIVOLTS, VOLTAGE_MAX_MILLIVOLTS, batterySensePin, ADC_RESOLUTION),
+        battery(VOLTAGE_MIN_MILLIVOLTS, VOLTAGE_MAX_MILLIVOLTS, batterySensePin, ADC_RESOLUTION),
         powerSensePin(powerSensePin), 
         chargeStatusPin(chargeStatusPin)
 {
@@ -14,7 +14,7 @@ PowerStatus::PowerStatus(
 
     // Set 12 bit ADC resolution
     analogReadResolution(ADC_RESOLUTION);
-    // battery.begin(VOLTAGE_REF_MILLIVOLTS, VOLTAGE_DIVIDER_RAITO, &asigmoidal);
+    battery.begin(VOLTAGE_REF_MILLIVOLTS, VOLTAGE_DIVIDER_RAITO, &asigmoidal);
 }
 
 boolean PowerStatus::getConnected()
@@ -29,8 +29,7 @@ uint8_t PowerStatus::getBatteryLevelPercent()
 
     if (!currentlyConnected) {
 
-        // uint8_t levelReading = battery.level();
-        uint8_t levelReading = 0;
+        uint8_t levelReading = battery.level();
 
         if (batteryPercentLatch > levelReading) {
             batteryPercentLatch = levelReading;
@@ -41,10 +40,10 @@ uint8_t PowerStatus::getBatteryLevelPercent()
     return batteryPercentLatch;
 }
 
-// uint16_t PowerStatus::getBatteryVoltage()
-// {
-//     return battery.voltage();
-// }
+uint16_t PowerStatus::getBatteryVoltage()
+{
+    return battery.voltage();
+}
 
 // TODO: Implement logic to indicate battery not connected
 ChargeingStatus PowerStatus::getChargingStatus()
@@ -58,8 +57,7 @@ PowerMetrics PowerStatus::measure()
     ChargeingStatus chargeingStatus = getChargingStatus();
     bool isConnected = getConnected();
     uint8_t battLevelPercent = getBatteryLevelPercent();
-    // uint16_t voltage = getBatteryVoltage();
-    uint16_t voltage = 0;
+    uint16_t voltage = getBatteryVoltage();
 
     return {chargeingStatus, isConnected, battLevelPercent, voltage};
 }

@@ -12,6 +12,7 @@ void setup()
 {
     Serial.begin(115200);
 	ESP_LOGI(TAG_MAIN, "----- BOOT SUCCESS -----");
+    ESP_LOGI(TAG_MAIN, "Chip Name: %s", ESP.getChipModel());
 	
 	hal_setup();
 }

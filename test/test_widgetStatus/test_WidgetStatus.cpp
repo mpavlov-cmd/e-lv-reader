@@ -69,7 +69,7 @@ void testRendersOneLineOfText_void(void) {
     widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
     model.plugged = true;
     model.charging = true;
-    model.time = "08:30";
+    strncpy(model.time, "08:30", sizeof(model.time));
 
     // When
     widgetStatus->upgrade(model);
@@ -86,7 +86,7 @@ void testRendersOneLineOfText_void(void) {
     widgetStatus = new WidgetStatus(widgetGroup, eventQueue);
     model.plugged = true;
     model.charging = false;
-    model.time = "14:00";
+    strncpy(model.time, "14:00", sizeof(model.time));
     strncpy(model.extra, LV_SYMBOL_WARNING, sizeof(model.extra));
 
     // When
@@ -105,7 +105,7 @@ void testRendersOneLineOfText_void(void) {
     model.plugged  = false;
     model.charging = false;
     model.batteryLevel = 100;
-    model.time = "23:59";
+    strncpy(model.time, "23:59", sizeof(model.time));
     strncpy(model.extra, LV_SYMBOL_ENVELOPE, sizeof(model.extra));
 
     // When

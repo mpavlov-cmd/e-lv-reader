@@ -3,8 +3,9 @@
 
 #include <AbstractIntent.h>
 #include <IntentIdentifier.h>
-#include <SleepControl.h>
 #include <PinDefinitions.h>
+#include <ESP32Time.h>
+#include <PowerStatus.h>
 #include <widget/WidgetStatus.h>
 #include <model/status/ModelStatus.h>
 
@@ -12,6 +13,10 @@ struct StatusManager : public AbstractIntent
 {
 
 private:
+
+    ESP32Time& espTime;
+    PowerStatus& powerStatus;
+
     DBox boxStatus = DBox::stickTop(480, 32, 8, 1);
 
     WidgetStatus* widgetStatus = nullptr; 
@@ -21,11 +26,15 @@ private:
     uint16_t frequency = 0;
     unsigned long lastExecution = 0;
 
+    char timeOutput[32];
+
+    void fillModelStatus();
+
 public:
     // Constant declaration
     static constexpr const uint8_t ID = INTENT_ID_STATUS;
 
-    StatusManager(QueueHandle_t& mEventQueue);
+    StatusManager(QueueHandle_t& mEventQueue, ESP32Time& mEspTime, PowerStatus& mPowerStatus);
     ~StatusManager()
     {
         delete modelStatus;

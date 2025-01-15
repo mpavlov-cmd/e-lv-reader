@@ -1,8 +1,27 @@
 #include "StatusManager.h"
+#include "TimeUtils.h"
 
-StatusManager::StatusManager(QueueHandle_t &mEventQueue) : AbstractIntent(mEventQueue)
+void StatusManager::fillModelStatus()
 {
+    if (modelStatus == nullptr) {
+        modelStatus = new ModelStatus();
+        modelStatus->box = boxStatus;
+        modelStatus->lvFont =  &lv_font_montserrat_18;
+    }
+
+    // Get and format time
+    memset(modelStatus->time, '\0', sizeof(modelStatus->time));
+    formatTime(espTime.getHour(), espTime.getMinute(), espTime.getSecond(), "HH:MM", modelStatus->time);
+
+    PowerMetrics powerMetrics = powerStatus.measure();
+    modelStatus->plugged  = powerMetrics.isConnected;
+    modelStatus->charging = powerMetrics.chargingStatus == CHARGING;
+    modelStatus->batteryLevel = powerMetrics.battLevelPercent;
+    strncpy(modelStatus->extra, String(powerMetrics.battVoltageMillivolts).c_str(), sizeof(modelStatus->extra));
 }
+
+StatusManager::StatusManager(QueueHandle_t &mEventQueue, ESP32Time &mEspTime, PowerStatus &mPowerStatus) 
+    : AbstractIntent(mEventQueue), espTime(mEspTime), powerStatus(mPowerStatus) {}
 
 void StatusManager::onStartUp(IntentArgument arg)
 {
@@ -13,21 +32,22 @@ void StatusManager::onStartUp(IntentArgument arg)
     lastExecution = millis();
 
     widgetParent = lv_obj_create(lv_scr_act());
-    modelStatus = new ModelStatus{boxStatus, false, false, 3, "00:00", "", &lv_font_montserrat_18};
+    fillModelStatus();
     widgetStatus = new WidgetStatus(widgetGroup, widgetParent, eventQueue);
-    widgetStatus->upgrade(*modelStatus);
 
-    // Create and run the timer
-    // timer = lv_timer_create(lv_timer, arg.intValue, this);
+    widgetStatus->upgrade(*modelStatus);
 }
 
 void StatusManager::onFrequncy()
 {
     unsigned long time = millis();
     if (time - lastExecution > frequency) {
+        // Run task on frequency
         ESP_LOGD(TAG_STAT, "StatusManager::onFrequncy");
-        strncpy(modelStatus->extra, String(time).c_str(), sizeof(modelStatus->extra));
+        fillModelStatus();
         widgetStatus->upgrade(*modelStatus);
+        
+        // Update last execution
         lastExecution = time;
     }   
 }

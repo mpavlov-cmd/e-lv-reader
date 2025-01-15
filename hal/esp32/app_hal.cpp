@@ -19,9 +19,9 @@
 #include "PinDefinitions.h"
 #include "SleepControl.h"
 #include "FileManager.h"
+#include "PowerStatus.h"
 #include "text/TextIndex.h"
 #include "cache/DirectoryCache.h"
-
 
 // Intents 
 #include "AbstractIntent.h"
@@ -45,21 +45,21 @@ void switchIntent(uint8_t intentId, IntentArgument intentArgument);
 void create_black_square(lv_obj_t * parent);
 
 // Variable definitions
+// Initialize Event Queue for MVC logc 
+QueueHandle_t eventQueue      = xQueueCreate(256, sizeof(ActionArgument));
+QueueHandle_t freqencyQueue   = xQueueCreate(1, sizeof(uint8_t));; 
+TaskHandle_t intentFreqHandle = NULL;
+
 SleepControlConf sleepCtrlConf = {GPIO_SEL_34 | GPIO_SEL_36 | GPIO_SEL_39, ESP_EXT1_WAKEUP_ALL_LOW};
 SleepControl sleepControl(sleepCtrlConf);
-
-// Initialize Event Queue for MVC logc 
-QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));
-QueueHandle_t freqencyQueue = xQueueCreate(1, sizeof(uint8_t));; 
 
 ESP32Time rtc(0);
 FileManager fileManager(SD, PIN_CS_SD);
 TextIndex textIndex(fileManager);
 DirectoryCache directoryCache(fileManager);
+PowerStatus powerStatus(PIN_PWR_DET, PIN_CHG_DET, PIN_BAT_STAT);
 
-StatusManager* statusManager;
-
-TaskHandle_t intentFreqHandle = NULL;
+StatusManager* statusManager  = nullptr;
 AbstractIntent* intentCurrent = nullptr;
 
 
@@ -87,10 +87,11 @@ void hal_setup(void)
     // Init lv file system 
     lv_arduino_fs_init();
 
-    log_d("Chip Name: %s", ESP.getChipModel());
+    // Set time
+    rtc.setTime(0, 13, 23, 14, 1, 2025, 0);
 
     // Status manager
-    statusManager = new StatusManager(eventQueue);
+    statusManager = new StatusManager(eventQueue, rtc, powerStatus);
     IntentArgument statusManagerArg(STATUS_FREQUENCY);
     statusManager->onStartUp(statusManagerArg);
 
