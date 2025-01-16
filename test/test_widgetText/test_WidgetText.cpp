@@ -31,9 +31,8 @@ void setUp(void)
     lv_init();
     lv_epd_disp_init();
     lv_joystick_indev_init();
-
-    // Init lv file system 
     lv_arduino_fs_init();
+    lv_epd_mark_full();
 
     widgetGroup = lv_group_create();
 	lv_indev_set_group(lv_get_keypad(), widgetGroup);

@@ -3,20 +3,30 @@
 #include "LogTags.h"
 
 
-
-IntentSleep::IntentSleep(QueueHandle_t& mEventQueue, SleepControl& sleepControl) :
-    AbstractIntent(mEventQueue), sleepControl(sleepControl) {}
+IntentSleep::IntentSleep(QueueHandle_t& mEventQueue, SleepControl& sleepControl, ESP32Time& espTime) :
+    AbstractIntent(mEventQueue), sleepControl(sleepControl), espTime(espTime) {}
 
 void IntentSleep::onStartUp(IntentArgument arg) {
     ESP_LOGD(TAG_INTNT, "IntentSleep::onStartUp");
 
-    textBox    = new DBox{176, 368, 128, 64, 0, 1};
+    // Display clock
+
+    widgetClock = new WidgetClock(widgetGroup, eventQueue);
+
+    modelClock = new ModelClock();
+    modelClock->box = boxClock;
+    ModelClock::updateWithEspTime(*modelClock, espTime);
+
+    widgetClock->upgrade(*modelClock);
+
+    // Display Text
     widgetText = new WidgetText(widgetGroup, eventQueue);
 
     modelText = ModelText::newPtr();
-    modelText->box   = *textBox;
-    modelText->text  = "Zzzz...";
+    modelText->box   = boxText;
+    modelText->text  = "Sleeping like an angel";
     modelText->align = LV_ALIGN_CENTER;
+    modelText->font  = &lv_font_montserrat_18; 
 
     widgetText->upgrade(*modelText);
 
@@ -27,9 +37,9 @@ void IntentSleep::onFrequncy() {
     ESP_LOGV(TAG_INTNT, "IntentSleep::onFrequncy");
     if (sleepPrepared && !imageDrawn) {
         
-        lv_obj_t * img = lv_img_create(lv_scr_act());
-        lv_img_set_src(img, "S:/.system/img/sleep_8bit.bmp");
-        lv_obj_center(img);
+        // lv_obj_t * img = lv_img_create(lv_scr_act());
+        // lv_img_set_src(img, "S:/.system/img/sleep_8bit.bmp");
+        // lv_obj_center(img);
 
         imageDrawn = true;
         return;

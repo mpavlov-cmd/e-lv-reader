@@ -3,12 +3,7 @@
 
 void IntentHome::updateTime()
 {
-	modelClock->year  = (uint16_t) espTime.getYear();
-	modelClock->month = (uint8_t) (espTime.getMonth() + 1);
-	modelClock->day   = (uint8_t) espTime.getDay();
-	modelClock->hour  = (uint8_t) espTime.getHour();
-	modelClock->min   = (uint8_t) espTime.getMinute();
-	modelClock->sec   = (uint8_t) espTime.getSecond();
+	ModelClock::updateWithEspTime(*modelClock, espTime);
 }
 
 IntentHome::IntentHome(QueueHandle_t &mEventQueue, ESP32Time &espTime, FileManager &fm) : AbstractIntent(mEventQueue), espTime(espTime), fileManager(fm) {}

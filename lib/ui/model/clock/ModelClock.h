@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <box/DBox.h>
+#include <ESP32Time.h>
 
 struct ModelClock {
 
@@ -14,6 +15,14 @@ struct ModelClock {
     uint8_t min;
     uint8_t sec;
 
+    static void updateWithEspTime(ModelClock& modelClock, ESP32Time& espTime) {
+        modelClock.year  = (uint16_t) espTime.getYear();
+        modelClock.month = (uint8_t) (espTime.getMonth() + 1);
+        modelClock.day   = (uint8_t) espTime.getDay();
+        modelClock.hour  = (uint8_t) espTime.getHour();
+        modelClock.min   = (uint8_t) espTime.getMinute();
+        modelClock.sec   = (uint8_t) espTime.getSecond();
+    };
 };
 
 #endif

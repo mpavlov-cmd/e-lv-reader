@@ -26,16 +26,14 @@ QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));
 void setUp(void)
 {   
     Serial.begin(115200);
-
     SPI.begin();
 
     // Initalize display as it is used by text index
     lv_init();
     lv_epd_disp_init();
-    lv_joystick_indev_init();
-
-    // Init lv file system 
+    lv_joystick_indev_init(); 
     lv_arduino_fs_init();
+    lv_epd_mark_full();
 
     widgetGroup = lv_group_create();
 	lv_indev_set_group(lv_get_keypad(), widgetGroup);

@@ -68,16 +68,12 @@ void lv_epd_disp_init(void)
     pinMode(PIN_DISP_DC,   OUTPUT); 
     pinMode(PIN_DSIP_CS,   OUTPUT);
 
-    // Full screen refresh initialization.
-    EPD_HW_Init_Fast();          
-    // Set buffer for patia refresh
-    EPD_SetRAMValue_Empty_BaseMap();
+    // Full screen refresh initialization and set buffer for patial refresh should be triggered by 
+    // lv_epd_mark_full during first display init or in tests
 
-    // EPD_WhiteScreen_White(); // Clear screen function.
-    // EPD_DeepSleep();         // Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
-    // delay(2000);             // Delay for 2s.
+    // EPD_HW_Init_Fast();          
+    // EPD_SetRAMValue_Empty_BaseMap();
 
-    // ----- EPD INIT END -----
     // ----- DISPLAY DRIVER INIT START -----
 
     // ------ Start display config ------

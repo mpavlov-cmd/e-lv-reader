@@ -27,7 +27,7 @@ bool SleepControl::setWarkupTimer(uint16_t wakeupTimerSecons)
 
 esp_sleep_wakeup_cause_t SleepControl::getWarkeupCause()
 {
-    return esp_sleep_wakeup_cause_t();
+    return esp_sleep_get_wakeup_cause();
 }
 
 void SleepControl::configureExt1WakeUp()

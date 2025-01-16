@@ -45,6 +45,9 @@ void switchIntent(uint8_t intentId, IntentArgument intentArgument);
 void create_black_square(lv_obj_t * parent);
 
 // Variable definitions
+
+esp_sleep_wakeup_cause_t wakeUpReason = ESP_SLEEP_WAKEUP_UNDEFINED;
+
 // Initialize Event Queue for MVC logc 
 QueueHandle_t eventQueue      = xQueueCreate(256, sizeof(ActionArgument));
 QueueHandle_t freqencyQueue   = xQueueCreate(1, sizeof(uint8_t));; 
@@ -69,45 +72,50 @@ void hal_setup(void)
     // Init and configure wdt with timeot seconds and panic flag
 	esp_task_wdt_init(60, false);
 
-    xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
+    // Sleep and wake-up configs
     sleepControl.configureExt1WakeUp();
+    sleepControl.setWarkupTimer(60);
+    wakeUpReason = sleepControl.getWarkeupCause();
+    ESP_LOGD(TAG_MAIN, "Wake Up Reason: %i", wakeUpReason);
 
-    // SPI
-    // SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+    xTaskCreate(blink, "blinky", 4096, NULL, 5, NULL);
+
+    // SPI ad FM
     SPI.begin();
-
-    // File manager
     fileManager.begin();
 
-    // Init grafics lib
+    // Init lv, display joystick and file system
 	lv_init();
     lv_epd_disp_init();
     lv_joystick_indev_init();
-
-    // Init lv file system 
     lv_arduino_fs_init();
 
-    // Set time
-    rtc.setTime(0, 13, 23, 14, 1, 2025, 0);
+    // Set time on initial startup
+    if (wakeUpReason == ESP_SLEEP_WAKEUP_UNDEFINED) {
+        rtc.setTime(0, 13, 23, 14, 1, 2025, 0);
+        
+    }
+    // Do not refresh full display ony if we're sleeping
+    if (wakeUpReason != ESP_SLEEP_WAKEUP_TIMER) {
+        lv_epd_mark_full();
+    }
 
     // Status manager
     statusManager = new StatusManager(eventQueue, rtc, powerStatus);
     IntentArgument statusManagerArg(STATUS_FREQUENCY);
     statusManager->onStartUp(statusManagerArg);
 
-    // Lunch intent mechaism
-    // buildIntent(INTENT_ID_BOOK);
-    // IntentArgument arg("/books/water.txt");
-
-    buildIntent(INTENT_ID_HOME);
+    // Build and start intent
+    uint8_t startupIntentId = wakeUpReason == ESP_SLEEP_WAKEUP_TIMER ? INTENT_ID_SLEEP : INTENT_ID_HOME;
+    buildIntent(startupIntentId);
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
     
     // Create event queue adnd frequency tasks 
     void *queues[2] = { eventQueue, freqencyQueue };
     xTaskCreate(eventQueueTask, "uiTask", 4096 * 2, queues, 1, nullptr);
     xTaskCreate(taskIntentFreq, "intentFreq", 2048, freqencyQueue, 1, &intentFreqHandle);
-    
-    // create_black_square(lv_scr_act());    
+
+    // create_black_square(lv_scr_act());
 }
 
 void hal_loop(void)
@@ -200,7 +208,7 @@ void buildIntent(uint8_t intentId)
 		intentCurrent = new IntentFileSelector(eventQueue, fileManager);
 		break;
 	case INTENT_ID_SLEEP:
-		intentCurrent = new IntentSleep(eventQueue, sleepControl);
+		intentCurrent = new IntentSleep(eventQueue, sleepControl, rtc);
 		break;
 	case INTENT_ID_BOOK:
 		intentCurrent = new IntentBook(eventQueue, fileManager, textIndex, directoryCache);
