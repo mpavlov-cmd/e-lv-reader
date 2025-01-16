@@ -8,10 +8,12 @@
 #include <AbstractIntent.h>
 #include <ESP32Time.h>
 #include <FileManager.h>
+
+#include <IntentIdentifier.h>
 #include <widget/WidgetMenu.h>
 #include <model/menu/Menu.h>
-#include <ButtonActions.h>
-#include <IntentIdentifier.h>
+#include <widget/WidgetClock.h>
+#include <model/clock/ModelClock.h>
 
 struct IntentHome : public AbstractIntent
 {
@@ -20,12 +22,21 @@ struct IntentHome : public AbstractIntent
         ESP32Time& espTime;
         FileManager& fileManager;
 
+        DBox boxMenu {48, 432, 384, 256, 12, 5};
+        DBox boxClock = DBox::atCenter(256, 128, 8, 0);
+
         lv_obj_t* menuParent = nullptr;
         WidgetMenu* widgetMenu = nullptr;
+        WidgetClock* widgetClock = nullptr;
 
         // Main menu and clock models
         Menu* menu = nullptr;
-        DBox* menuBox = nullptr;
+        ModelClock* modelClock = nullptr;
+
+        // Last inute to run on requency only if time changes
+        int lastMinute = 0;
+
+        void updateTime();
 
     public:
         // Constant declaration
@@ -43,8 +54,9 @@ struct IntentHome : public AbstractIntent
         ~IntentHome() {
             ESP_LOGD(TAG_INTNT, "IntentHome Destructor Start");
             delete menu;
-            delete menuBox;
             delete widgetMenu;
+            delete modelClock;
+            delete widgetClock;
             if (lv_obj_is_valid(menuParent)) {
     			lv_obj_del(menuParent);
             }

@@ -1,11 +1,23 @@
 #include "IntentHome.h"
 #include "lvgl.h"
 
-IntentHome::IntentHome(QueueHandle_t& mEventQueue, ESP32Time &espTime, FileManager &fm) :
-AbstractIntent(mEventQueue), espTime(espTime), fileManager(fm) {}
+void IntentHome::updateTime()
+{
+	modelClock->year  = (uint16_t) espTime.getYear();
+	modelClock->month = (uint8_t) (espTime.getMonth() + 1);
+	modelClock->day   = (uint8_t) espTime.getDay();
+	modelClock->hour  = (uint8_t) espTime.getHour();
+	modelClock->min   = (uint8_t) espTime.getMinute();
+	modelClock->sec   = (uint8_t) espTime.getSecond();
+}
+
+IntentHome::IntentHome(QueueHandle_t &mEventQueue, ESP32Time &espTime, FileManager &fm) : AbstractIntent(mEventQueue), espTime(espTime), fileManager(fm) {}
 
 void IntentHome::onStartUp(IntentArgument arg)
 {
+	// Store minute for further updates
+	lastMinute = espTime.getMinute();
+
 	// Define menu items
 	Set<MenuItem> menuItems(10);
 
@@ -15,20 +27,36 @@ void IntentHome::onStartUp(IntentArgument arg)
 	menuItems.addItem(new MenuItem(3, "Other", nullptr));
 	menuItems.addItem(new MenuItem(INTENT_ID_SLEEP, "Sleep", LV_SYMBOL_EYE_CLOSE));
 
-	// Define Box and Menu
-	menuBox = new DBox{48, 432, 384, 256, 12, 5};
-	menu = new Menu(*menuBox, "Main menu:", menuItems);
+	// Define Menu
+	menu = new Menu(boxMenu, "Main menu:", menuItems);
 
 	// Create widgets
 	menuParent = lv_obj_create(lv_scr_act());
-
 	widgetMenu = new WidgetMenu(widgetGroup, menuParent, eventQueue);
 	widgetMenu->upgrade(*menu);
+
+	boxClock.y = boxClock.y - 160;
+	modelClock = new ModelClock();
+	modelClock->box = boxClock;
+	updateTime();
+
+	widgetClock = new WidgetClock(widgetGroup, eventQueue);
+	widgetClock->upgrade(*modelClock);
 }
 
 void IntentHome::onFrequncy()
-{
+{	
+	int currentMinute = espTime.getMinute();
+	if (lastMinute == currentMinute) {
+		return;
+	}
+	
 	ESP_LOGV(TAG_INTNT, "IntentHome::onFrequncy");
+	updateTime();
+	widgetClock->upgrade(*modelClock);
+
+	// Storecurrent minute as procesed
+	lastMinute = currentMinute;
 }
 
 void IntentHome::onExit()

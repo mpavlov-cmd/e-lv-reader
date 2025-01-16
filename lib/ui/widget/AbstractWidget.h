@@ -96,7 +96,7 @@ public:
 
             lv_style_init(&style);
             lv_style_set_border_width(&style, box.border);
-            lv_style_set_border_color(&style, lv_color_make(0x00, 0x00, 0x00));
+            lv_style_set_border_color(&style, lv_color_black());
             lv_style_set_border_opa(&style, LV_OPA_COVER);
             lv_style_set_pad_all(&style, box.padding);    
 

@@ -155,7 +155,7 @@ void eventQueueTask(void *pvParameters)
     while (true)
     {
         // Make sure intent is initialized
-        if (intentCurrent == nullptr) {
+        if (intentCurrent == nullptr || statusManager == nullptr) {
             vTaskDelay(5 / portTICK_PERIOD_MS );
             continue;
         }
@@ -172,7 +172,6 @@ void eventQueueTask(void *pvParameters)
         // Check if actions were prformed
         if (xQueueReceive(eventQueue, &actionArgument, pdMS_TO_TICKS(5)) == pdPASS)
         {
-    
             // ESP_LOGD(TAG_MAIN, "Received event: target=%p, code=%d", actionArg.target, actionArg.code);
             ActionResult result = intentCurrent->onAction(actionArgument);
 
