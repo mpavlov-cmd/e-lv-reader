@@ -19,7 +19,7 @@ struct ModelClock {
         modelClock.year  = (uint16_t) espTime.getYear();
         modelClock.month = (uint8_t) (espTime.getMonth() + 1);
         modelClock.day   = (uint8_t) espTime.getDay();
-        modelClock.hour  = (uint8_t) espTime.getHour();
+        modelClock.hour  = (uint8_t) espTime.getHour(true);
         modelClock.min   = (uint8_t) espTime.getMinute();
         modelClock.sec   = (uint8_t) espTime.getSecond();
     };

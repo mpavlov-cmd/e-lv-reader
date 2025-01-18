@@ -11,7 +11,8 @@ void IntentConf::onStartUp(IntentArgument arg)
 
     widgetClockConf = new WidgetClockConf(widgetGroup, eventQueue);
     modelClock = new ModelClock(); 
-    modelClock->box = boxClockConf; // TODO: Set remaining model values
+    modelClock->box = boxClockConf;
+    ModelClock::updateWithEspTime(*modelClock, espTime);
     
     widgetClockConf->upgrade(*modelClock);
 }

@@ -10,6 +10,7 @@
 
 #include <widget/WidgetClockConf.h>
 #include <model/clock/ModelClock.h>
+#include <TimeUtils.h>
 
 struct IntentConf : public AbstractIntent
 {

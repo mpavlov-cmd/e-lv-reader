@@ -11,7 +11,7 @@ void StatusManager::fillModelStatus()
 
     // Get and format time
     memset(modelStatus->time, '\0', sizeof(modelStatus->time));
-    formatTime(espTime.getHour(), espTime.getMinute(), espTime.getSecond(), "HH:MM", modelStatus->time);
+    formatTime(espTime.getHour(true), espTime.getMinute(), espTime.getSecond(), "HH:MM", modelStatus->time);
 
     PowerMetrics powerMetrics = powerStatus.measure();
     modelStatus->plugged  = powerMetrics.isConnected;
