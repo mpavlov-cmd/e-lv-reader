@@ -30,7 +30,7 @@ Battery::Battery(uint16_t minVoltage, uint16_t maxVoltage, uint8_t sensePin, uin
 
 	// Obtain the device ADC reference voltage
 	esp_adc_cal_characteristics_t adc_chars;
-	esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12, 1100, &adc_chars);
+	esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, &adc_chars);
 	this->vrefESP = adc_chars.vref; 
 }
 

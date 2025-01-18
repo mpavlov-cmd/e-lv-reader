@@ -18,7 +18,7 @@ void IntentHome::onStartUp(IntentArgument arg)
 
 	// Main menu. For simplifity menu ID here MUST match intent ID
 	menuItems.addItem(new MenuItem(INTENT_ID_FILE_SELECTOR, "Select Book", LV_SYMBOL_FILE, true));
-	menuItems.addItem(new MenuItem(2, "Settings", LV_SYMBOL_SETTINGS));
+	menuItems.addItem(new MenuItem(INTENT_ID_CONF, "Settings", LV_SYMBOL_SETTINGS));
 	menuItems.addItem(new MenuItem(3, "Other", nullptr));
 	menuItems.addItem(new MenuItem(INTENT_ID_SLEEP, "Sleep", LV_SYMBOL_EYE_CLOSE));
 
@@ -68,15 +68,19 @@ ActionResult IntentHome::onAction(ActionArgument arg)
 		MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
 		ESP_LOGD(TAG_INTNT, "Got user data from event. ID: %i, Name: %s", clicked->getId(), clicked->getName());
 		
-		if (clicked->getId() == INTENT_ID_SLEEP) {
-			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_SLEEP, IntentArgument::NO_ARG};
-		}
-
 		if (clicked->getId() == INTENT_ID_FILE_SELECTOR) {
 			// From main menu go to FS root
 			IntentArgument fsRoot("/");
 			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_FILE_SELECTOR, fsRoot};
 		}
+
+		if (clicked->getId() == INTENT_ID_CONF) {
+			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_CONF, IntentArgument::NO_ARG};
+		}
+
+		if (clicked->getId() == INTENT_ID_SLEEP) {
+			return {ActionRetultType::CHANGE_INTENT, INTENT_ID_SLEEP, IntentArgument::NO_ARG};
+		}		
 	}
 
 	return ActionResult::VOID;

@@ -29,6 +29,7 @@
 #include "intent/IntentSleep.h"
 #include "intent/IntentFileSelector.h"
 #include "intent/IntentBook.h"
+#include "intent/IntentConf.h"
 
 #include "status/StatusManager.h"
 
@@ -106,7 +107,7 @@ void hal_setup(void)
     statusManager->onStartUp(statusManagerArg);
 
     // Build and start intent
-    uint8_t startupIntentId = wakeUpReason == ESP_SLEEP_WAKEUP_TIMER ? INTENT_ID_SLEEP : INTENT_ID_HOME;
+    uint8_t startupIntentId = wakeUpReason == ESP_SLEEP_WAKEUP_TIMER ? INTENT_ID_SLEEP : INTENT_ID_CONF;
     buildIntent(startupIntentId);
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
     
@@ -207,11 +208,14 @@ void buildIntent(uint8_t intentId)
 	case INTENT_ID_FILE_SELECTOR:
 		intentCurrent = new IntentFileSelector(eventQueue, fileManager);
 		break;
+    case INTENT_ID_BOOK:
+		intentCurrent = new IntentBook(eventQueue, fileManager, textIndex, directoryCache);
+		break;
+    case INTENT_ID_CONF:
+        intentCurrent = new IntentConf(eventQueue, rtc);
+        break;
 	case INTENT_ID_SLEEP:
 		intentCurrent = new IntentSleep(eventQueue, sleepControl, rtc);
-		break;
-	case INTENT_ID_BOOK:
-		intentCurrent = new IntentBook(eventQueue, fileManager, textIndex, directoryCache);
 		break;
 	default:
 		intentCurrent = new IntentHome(eventQueue, rtc, fileManager);

@@ -34,8 +34,10 @@ uint8_t SwithInputHandler::handleInput(volatile bool& isrPending, volatile unsig
 		if (!isrInputHeld) {
 			// Drop chache to avoid returning value appeared during debounce
 			isrInputCache = 0;
+			return 0;
+		} else {
+			return isrInputCache;
 		}
-		return 0;
 	}
 
 	isrInputCurrent = (digitalRead(pin2) << 2) | (digitalRead(pin1) << 1) | digitalRead(pin0);

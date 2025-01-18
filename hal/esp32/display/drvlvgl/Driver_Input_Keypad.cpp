@@ -96,7 +96,6 @@ void joystick_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
         }
 
     } else {
-        // TODO: Figure out wy released is triggered while held
         if (btnPressed) {
             ESP_LOGD(TAG_INPUT, "Button Released");
 

@@ -10,8 +10,8 @@ struct SwithInputHandler
 
         bool isrInputHeld = false;
         unsigned long isrLastReturn = 0;
-        uint8_t isrInputCache = 0, isrInputCurrent = 0, isrRetVal = 0, debounseThresholdMills = 100;
-        uint16_t holdThresholdMills = 2500;
+        uint8_t isrInputCache = 0, isrInputCurrent = 0, isrRetVal = 0, debounseThresholdMills = 50;
+        uint16_t holdThresholdMills = 1000;
 
     public: 
         /**
