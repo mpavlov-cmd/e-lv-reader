@@ -16,10 +16,20 @@
 class WidgetClockConf : public AbstractWidget<ModelClock>
 {
     public:
+
+        struct Action {
+            uint8_t id;
+            ModelClock* data;
+        };
+
         WidgetClockConf(lv_group_t* wGroup, QueueHandle_t& mEventQueue) 
             : AbstractWidget(wGroup, mEventQueue) {}
         
         ~WidgetClockConf() override {
+            
+            // Delete actions
+            delete actionClose;
+            delete actionSave;
 
             // ESP_LOGD(TAG_WIDGT, "WidgetClockConf destructor start");
             if (lv_obj_is_valid(dropDownHours)) {
@@ -36,6 +46,10 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
     private: 
 
         const uint8_t DAYS_IN_MONTH[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+        // Define actions 
+        Action* actionClose = nullptr;
+        Action* actionSave  = nullptr;
 
         lv_obj_t* labelHours = nullptr;
         lv_obj_t* dropDownHours = nullptr;
@@ -149,7 +163,6 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             return -1; // Return -1 if the number is not found
         }
 
-        // TODO: Use during inital draw
         uint8_t maxDaysInMonth(uint8_t month, uint16_t year)
         {
             uint8_t maxDays;
@@ -186,6 +199,9 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             lv_obj_t* dropdown = lv_event_get_target(event); 
             const uint8_t inputIndex = (uint8_t)(uintptr_t)lv_obj_get_user_data(dropdown);
 
+            // Get ref for model fo simplicity
+            ModelClock* model = widget->actionSave->data;
+
             // Set currect days in month
             if (inputIndex == IDX_CONF_MTH || inputIndex == IDX_CONF_YAR) {
                 
@@ -217,8 +233,46 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
                 uint8_t selectedId = currentDayValue > daysInMonth ? 0 : selectedDayId;
                 lv_dropdown_set_selected(widget->dropDownDay, selectedId);
+
+                // Set new values for model
+                model->month = newMondthValue; 
+                model->year  = newYearValue;
             }
 
+            // Set model values for other components
+            char selValString[3];
+            
+            if (inputIndex == IDX_CONF_HOUR) {
+                lv_dropdown_get_selected_str(widget->dropDownHours, selValString, sizeof(selValString));
+                uint8_t newHourValue = (uint8_t)atoi(selValString);
+                model->hour = newHourValue;
+            }
+
+            if (inputIndex == IDX_CONF_MIN) {
+                lv_dropdown_get_selected_str(widget->dropDownMinutes, selValString, sizeof(selValString));
+                uint8_t newMinValue = (uint8_t)atoi(selValString);
+                model->min = newMinValue;
+            }
+
+            if (inputIndex == IDX_CONF_SEC) {
+                lv_dropdown_get_selected_str(widget->dropDownSeconds, selValString, sizeof(selValString));
+                uint8_t newSecValue = (uint8_t)atoi(selValString);
+                model->sec = newSecValue;
+            }
+
+            if (inputIndex == IDX_CONF_DAY) {
+                lv_dropdown_get_selected_str(widget->dropDownDay, selValString, sizeof(selValString));
+                uint8_t newDayValue = (uint8_t)atoi(selValString);
+                model->day = newDayValue;
+            }
+           
+            memset(selValString, 0, sizeof(selValString));
+
+            // Log seleted value
+            ESP_LOGD(
+                TAG_WIDGT, "%i:%i:%i %i/%i/%i", 
+                model->hour, model->min, model->sec, model->day, model->month, model->year
+            );
         }
 
         DBox createBox(ModelClock& widgetData) override
@@ -227,6 +281,10 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
         }
 
         void initialize(ModelClock& widgetData) override {
+
+            // Init actions
+            actionSave  = new Action {1, &widgetData}; // Important as it is used in actions
+            actionClose = new Action {0, nullptr};
 
             // Set parent font
             lv_style_set_text_font(&style, &lv_font_montserrat_18);
@@ -380,8 +438,11 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             
             // Event control
             // Set user data to 0, so controller (intent) understands that exit is pressed)
-            lv_obj_set_user_data(buttonClose, (void*)(uintptr_t)0);
+            lv_obj_set_user_data(buttonClose, actionClose);
+            lv_obj_set_user_data(buttonSave, actionSave);
+
             attachEventHandler(buttonClose);
+            attachEventHandler(buttonSave);
         }
 
         void print(ModelClock& widgetData) override
