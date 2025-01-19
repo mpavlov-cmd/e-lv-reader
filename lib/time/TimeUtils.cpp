@@ -65,3 +65,23 @@ void formatTime(uint8_t hour, uint8_t minute, uint8_t second, const char *patter
     }
     *out = '\0'; // Null-terminate the output string
 }
+
+uint8_t maxDaysInMonth(uint8_t month, uint16_t year)
+{
+    uint8_t DAYS_IN_MONTH[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    uint8_t maxDays;
+
+    // Handle leap year in february
+    if (month == 2)
+    {
+        boolean leapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+        maxDays = leapYear ? 29 : 28;
+    }
+    else
+    {
+        maxDays = DAYS_IN_MONTH[month - 1];
+    }
+
+    return maxDays;
+}
