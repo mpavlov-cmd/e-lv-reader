@@ -1,15 +1,11 @@
 #include <unity.h>
 #include <esp_log.h>
 #include <LogTags.h>
+
 #include <Arduino.h>
 #include <SPI.h>
-#include <SD.h>
-#include <FS.h>
-#include <set/Set.h>
 
 #include <PinDefinitions.h>
-
-#include <index/FileIndex.h>
 #include <FileManager.h>
 #include <cache/DirectoryCache.h>
 

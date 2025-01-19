@@ -19,7 +19,7 @@ private:
     ESP32Time& espTime;
 
     // Define clock consf widget and model
-    DBox boxClockConf = DBox::atCenter(464, 240, 8, 1);
+    DBox boxClockConf = DBox::atCenter(464, 280, 8, 1);
     WidgetClockConf* widgetClockConf = nullptr;
     ModelClock* modelClock = nullptr;
 

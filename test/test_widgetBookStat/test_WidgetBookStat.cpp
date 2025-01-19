@@ -8,12 +8,6 @@
 
 #include <Arduino.h>
 #include <SPI.h>
-#include <SD.h>
-#include <FS.h>
-#include <set/Set.h>
-#include <FileManager.h>
-#include <ButtonActions.h>
-#include <SleepControl.h>
 
 #include <widget/WidgetBookStat.h>
 

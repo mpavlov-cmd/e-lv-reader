@@ -25,7 +25,6 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
         WidgetClockConf(lv_group_t* wGroup, QueueHandle_t& mEventQueue) 
             : AbstractWidget(wGroup, mEventQueue) {}
         
-        // TODO: Delete remaining values
         ~WidgetClockConf() override {
             
             // Delete actions
@@ -40,6 +39,7 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             lv_style_reset(&styleDropDownFocused);
             lv_style_reset(&styleButton);
             lv_style_reset(&styleButtonFocused);
+            lv_style_reset(&styleLabelHeading);
 
             ESP_LOGD(TAG_WIDGT, "WidgetClockConf destructor end");
         }
@@ -62,10 +62,10 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
         // Define buttons and button labels
         lv_obj_t *buttonSave = nullptr, *buttonClose = nullptr;
-        lv_obj_t *labelButtonSave = nullptr, *labelButtonClose = nullptr;
+        lv_obj_t *labelButtonSave = nullptr, *labelButtonClose = nullptr, *labelHeading = nullptr;
 
         // Define styles
-        lv_style_t styleDropDownFocused, styleButton, styleButtonFocused;
+        lv_style_t styleDropDownFocused, styleButton, styleButtonFocused, styleLabelHeading;
 
         // Common event handler
         static void dropDownEventHandler(lv_event_t *event)
@@ -173,6 +173,16 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             lv_dropdown_set_selected(*result, findValueInString(optString, value));
         }
 
+        void createLabel(
+            lv_obj_t **label, lv_obj_t *parent, lv_obj_t *reference,
+            const char *text, lv_align_t align, int x_offset, int y_offset
+        )
+        {
+            *label = lv_label_create(parent);
+            lv_label_set_text(*label, text);
+            lv_obj_align_to(*label, reference, align, x_offset, y_offset);
+        }
+
         void createButtonStyle(lv_style_t *style, lv_color_t textColor, lv_color_t bgColor, uint8_t border)
         {
             lv_style_init(style);
@@ -199,6 +209,9 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             // Set parent font
             lv_style_set_text_font(&style, &lv_font_montserrat_18);
 
+            lv_style_init(&styleLabelHeading);
+            lv_style_set_text_font(&styleLabelHeading, &lv_font_montserrat_24);
+
             // Init style for focused dropdown
             lv_style_init(&styleDropDownFocused);
             lv_style_set_border_width(&styleDropDownFocused, 2);
@@ -210,51 +223,41 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             createButtonStyle(&styleButton, lv_color_black(), lv_color_white(), 2);
             createButtonStyle(&styleButtonFocused, lv_color_white(), lv_color_black(), 0);
 
+            // Init heading
+            labelHeading = lv_label_create(parent);
+            lv_label_set_text(labelHeading, "Configure Time:");
+            lv_obj_set_pos(labelHeading, 0, 0);
+            lv_obj_add_style(labelHeading, &styleLabelHeading, LV_PART_MAIN);
+
             // Init dropdowns
             uint8_t daysInMonth = maxDaysInMonth(widgetData.month, widgetData.year);
+            uint16_t yRow0 = 64, yRow1 = 152, yRow2 = 208;
 
             createDropDown(&dropDownHours, parent, IDX_CONF_HOUR, 0, 23, optionsHours, sizeof(optionsHours),
-                0,   16, 104, widgetData.hour);
+                0,   yRow0, 104, widgetData.hour);
             createDropDown(&dropDownMinutes, parent, IDX_CONF_MIN, 0, 59, optionsMinutes, sizeof(optionsMinutes),
-                112, 16, 156, widgetData.min);
+                112, yRow0, 156, widgetData.min);
             createDropDown(&dropDownSeconds, parent, IDX_CONF_SEC, 0, 59, optionsSeconds, sizeof(optionsSeconds),
-                284, 16, 156, widgetData.sec);
+                284, yRow0, 156, widgetData.sec);
             createDropDown(&dropDownDay, parent, IDX_CONF_DAY, 1, daysInMonth, optionsDay, sizeof(optionsDay),
-                0,   104, 104, widgetData.day);
+                0,   yRow1, 104, widgetData.day);
             createDropDown(&dropDownMonth, parent, IDX_CONF_MTH, 1, 12, optionsMonth, sizeof(optionsMonth),
-                112, 104, 156, widgetData.month);
+                112, yRow1, 156, widgetData.month);
             createDropDown(&dropDownYear, parent, IDX_CONF_YAR, 2024, 2035, optionsYear, sizeof(optionsYear),
-                284, 104, 156, widgetData.year);
+                284, yRow1, 156, widgetData.year);
             
-            // TODO: DRY, create a function to handle label creation
-            labelHours = lv_label_create(parent);
-            lv_label_set_text(labelHours, "Hours");
-            lv_obj_align_to(labelHours, dropDownHours, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
-
-            labelMinutes = lv_label_create(parent);
-            lv_label_set_text(labelMinutes, "Minutes");
-            lv_obj_align_to(labelMinutes, dropDownMinutes, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
-
-            labelSeconds = lv_label_create(parent);
-            lv_label_set_text(labelSeconds, "Seconds");
-            lv_obj_align_to(labelSeconds, dropDownSeconds, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
-
-            labelDay = lv_label_create(parent);
-            lv_label_set_text(labelDay, "Day");
-            lv_obj_align_to(labelDay, dropDownDay, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
-
-            labelMonth = lv_label_create(parent);
-            lv_label_set_text(labelMonth, "Month");
-            lv_obj_align_to(labelMonth, dropDownMonth, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
-
-            labelYear = lv_label_create(parent);
-            lv_label_set_text(labelYear, "Year");
-            lv_obj_align_to(labelYear, dropDownYear, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+            // Init labels 
+            createLabel(&labelHours, parent, dropDownHours, "Hours", LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+            createLabel(&labelMinutes, parent, dropDownMinutes, "Minutes", LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+            createLabel(&labelSeconds, parent, dropDownSeconds, "Seconds", LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+            createLabel(&labelDay, parent, dropDownDay, "Day", LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+            createLabel(&labelMonth, parent, dropDownMonth, "Month", LV_ALIGN_OUT_TOP_LEFT, 0, 0);
+            createLabel(&labelYear, parent, dropDownYear, "Year", LV_ALIGN_OUT_TOP_LEFT, 0, 0);
 
             // Buttons
             uint16_t buttonWidth = (box.width - box.padding * 2 - box.border * 2) / 2 - 4;
             buttonSave = lv_btn_create(parent);
-            lv_obj_set_pos(buttonSave, 0, 176);
+            lv_obj_set_pos(buttonSave, 0, yRow2);
             lv_obj_set_size(buttonSave, buttonWidth, 48);
             
             labelButtonSave = lv_label_create(buttonSave);
@@ -262,7 +265,7 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             lv_obj_center(labelButtonSave);
 
             buttonClose = lv_btn_create(parent);
-            lv_obj_set_pos(buttonClose, buttonWidth + 8, 176);
+            lv_obj_set_pos(buttonClose, buttonWidth + 8, yRow2);
             lv_obj_set_size(buttonClose, buttonWidth, 48);
             
             labelButtonClose = lv_label_create(buttonClose);

@@ -8,17 +8,11 @@
 
 #include <Arduino.h>
 #include <SPI.h>
-#include <SD.h>
-#include <FS.h>
-#include <set/Set.h>
-#include <FileManager.h>
-#include <ButtonActions.h>
-#include <SleepControl.h>
 
 #include <widget/WidgetClockConf.h>
 #include <model/clock/ModelClock.h>
 
-DBox box = DBox::atCenter(464, 464, 8, 1);
+DBox box = DBox::atCenter(464, 280, 8, 1);
 
 lv_group_t* widgetGroup;
 QueueHandle_t eventQueue = xQueueCreate(256, sizeof(ActionArgument));
@@ -48,7 +42,7 @@ void testRendersOneLineOfText_void(void) {
 
     // Given
     WidgetClockConf widgetClockConf(widgetGroup, eventQueue);
-    ModelClock model = {box, 2025, 1, 15, 8, 0, 5};
+    ModelClock model = {box, 2025, 2, 15, 16, 20, 5};
 
     // When
     widgetClockConf.upgrade(model);

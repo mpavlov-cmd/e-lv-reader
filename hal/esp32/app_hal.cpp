@@ -106,7 +106,7 @@ void hal_setup(void)
     statusManager->onStartUp(statusManagerArg);
 
     // Build and start intent
-    uint8_t startupIntentId = wakeUpReason == ESP_SLEEP_WAKEUP_TIMER ? INTENT_ID_SLEEP : INTENT_ID_CONF;
+    uint8_t startupIntentId = wakeUpReason == ESP_SLEEP_WAKEUP_TIMER ? INTENT_ID_SLEEP : INTENT_ID_HOME;
     buildIntent(startupIntentId);
     intentCurrent->onStartUp(IntentArgument::NO_ARG);
     
