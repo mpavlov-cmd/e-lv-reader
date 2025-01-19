@@ -93,7 +93,7 @@ void hal_setup(void)
 
     // Set time on initial startup
     if (wakeUpReason == ESP_SLEEP_WAKEUP_UNDEFINED) {
-        rtc.setTime(30, 15, 18, 14, 2, 2025, 0);
+        rtc.setTime(30, 15, 18, 27, 2, 2025, 0);
         
     }
     // Do not refresh full display ony if we're sleeping

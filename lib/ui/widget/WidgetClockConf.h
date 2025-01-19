@@ -5,6 +5,14 @@
 #include "model/clock/ModelClock.h"
 #include "TimeUtils.h"
 
+
+#define IDX_CONF_HOUR 0
+#define IDX_CONF_MIN  1
+#define IDX_CONF_SEC  2
+#define IDX_CONF_DAY  3
+#define IDX_CONF_MTH  4
+#define IDX_CONF_YAR  5
+
 class WidgetClockConf : public AbstractWidget<ModelClock>
 {
     public:
@@ -26,6 +34,8 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
         }
     
     private: 
+
+        const uint8_t DAYS_IN_MONTH[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
         lv_obj_t* labelHours = nullptr;
         lv_obj_t* dropDownHours = nullptr;
@@ -63,6 +73,9 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
         // Options generator
         void generateStringSeq(uint16_t start, uint16_t end, char* result, size_t length) {
+            // Clean the buffer
+            memset(result, 0, length);
+
             // Check if input is valid
             if (start > end || length == 0) {
                 if (length > 0) {
@@ -136,6 +149,25 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             return -1; // Return -1 if the number is not found
         }
 
+        // TODO: Use during inital draw
+        uint8_t maxDaysInMonth(uint8_t month, uint16_t year)
+        {
+            uint8_t maxDays;
+
+            // Handle leap year in february
+            if (month == 2)
+            {
+                boolean leapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+                maxDays = leapYear ? 29 : 28;
+            }
+            else
+            {
+                maxDays = DAYS_IN_MONTH[month - 1];
+            }
+
+            return maxDays;
+        }
+
         // Common event handler
         static void dropDownEventHandler(lv_event_t *event)
         {
@@ -151,7 +183,41 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
                 return;
             }
 
-            ESP_LOGD(TAG_WIDGT, "Received dropdown event");
+            lv_obj_t* dropdown = lv_event_get_target(event); 
+            const uint8_t inputIndex = (uint8_t)(uintptr_t)lv_obj_get_user_data(dropdown);
+
+            // Set currect days in month
+            if (inputIndex == IDX_CONF_MTH || inputIndex == IDX_CONF_YAR) {
+                
+                // Get currently selected id option for days
+                uint8_t selectedDayId = lv_dropdown_get_selected(widget->dropDownDay);
+
+                // Get currently selected option
+                char selDayString[3];
+                lv_dropdown_get_selected_str(widget->dropDownDay, selDayString, sizeof(selDayString)); 
+                uint8_t currentDayValue = (uint8_t)atoi(selDayString);
+                
+                // Get selectd month
+                char selMonthString[3];
+                lv_dropdown_get_selected_str(widget->dropDownMonth, selMonthString, sizeof(selMonthString)); 
+                uint8_t newMondthValue = (uint8_t)atoi(selMonthString);
+
+                // Get selected year
+                char selYearString[5];
+                lv_dropdown_get_selected_str(widget->dropDownYear, selYearString, sizeof(selYearString)); 
+                uint16_t newYearValue = (uint16_t)atoi(selYearString);
+
+                ESP_LOGD(TAG_WIDGT, "Selected month: %i, selected year: %i", newMondthValue, newYearValue);
+
+                uint8_t daysInMonth = widget->maxDaysInMonth(newMondthValue, newYearValue);
+
+                // Modify number of days in the year
+                widget->generateStringSeq(1, daysInMonth, widget->optionsDay, sizeof(widget->optionsDay));
+                lv_dropdown_set_options(widget->dropDownDay, widget->optionsDay);
+
+                uint8_t selectedId = currentDayValue > daysInMonth ? 0 : selectedDayId;
+                lv_dropdown_set_selected(widget->dropDownDay, selectedId);
+            }
 
         }
 
@@ -193,6 +259,7 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
             dropDownHours = lv_dropdown_create(parent);
             generateStringSeq(0, 23, optionsHours, sizeof(optionsHours));
+            lv_obj_set_user_data(dropDownHours, (void*)(uintptr_t)IDX_CONF_HOUR);
             lv_obj_set_pos(dropDownHours, 0, 16);
             lv_obj_set_width(dropDownHours, 104);
             lv_dropdown_set_options(dropDownHours, optionsHours);
@@ -204,6 +271,7 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
             dropDownMinutes = lv_dropdown_create(parent);
             generateStringSeq(0, 59, optionsMinutes, sizeof(optionsMinutes));
+            lv_obj_set_user_data(dropDownMinutes, (void*)(uintptr_t)IDX_CONF_MIN);
             lv_obj_set_pos(dropDownMinutes, 112, 16);
             lv_obj_set_width(dropDownMinutes, 156);
             lv_dropdown_set_options(dropDownMinutes, optionsMinutes);
@@ -215,6 +283,7 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
             dropDownSeconds = lv_dropdown_create(parent);
             generateStringSeq(0, 59, optionsSeconds, sizeof(optionsSeconds));
+            lv_obj_set_user_data(dropDownSeconds, (void*)(uintptr_t)IDX_CONF_SEC);
             lv_obj_set_pos(dropDownSeconds, 284, 16);
             lv_obj_set_width(dropDownSeconds, 156);
             lv_dropdown_set_options(dropDownSeconds, optionsSeconds);
@@ -225,7 +294,8 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             lv_obj_align_to(labelSeconds, dropDownSeconds, LV_ALIGN_OUT_TOP_LEFT, 0, 0);
 
             dropDownDay = lv_dropdown_create(parent);
-            generateStringSeq(1, 31, optionsDay, sizeof(optionsDay)); // TODO: num of days based on the month
+            generateStringSeq(1, maxDaysInMonth(widgetData.month, widgetData.year), optionsDay, sizeof(optionsDay));
+            lv_obj_set_user_data(dropDownDay, (void*)(uintptr_t)IDX_CONF_DAY);
             lv_obj_set_pos(dropDownDay, 0, 104);
             lv_obj_set_width(dropDownDay, 104);
             lv_dropdown_set_options(dropDownDay, optionsDay);
@@ -237,6 +307,7 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
             dropDownMonth = lv_dropdown_create(parent);
             generateStringSeq(1, 12, optionsMonth, sizeof(optionsMonth));
+            lv_obj_set_user_data(dropDownMonth, (void*)(uintptr_t)IDX_CONF_MTH);
             lv_obj_set_pos(dropDownMonth, 112, 104);
             lv_obj_set_width(dropDownMonth, 156);
             lv_dropdown_set_options(dropDownMonth, optionsMonth);
@@ -248,6 +319,7 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
 
             dropDownYear = lv_dropdown_create(parent);
             generateStringSeq(2024, 2035, optionsYear, sizeof(optionsYear));
+            lv_obj_set_user_data(dropDownYear, (void*)(uintptr_t)IDX_CONF_YAR);
             lv_obj_set_pos(dropDownYear, 284, 104);
             lv_obj_set_width(dropDownYear, 156);
             lv_dropdown_set_options(dropDownYear, optionsYear);
