@@ -34,7 +34,7 @@ To convert image use:
 - [x] Implement beautiful clock widget for home page and sleep
 - [x] Implement sleep on timer and timer wakeup, so device can update clock and go back to sleep in case of timer wakeup
 - [x] Implement config intent, so I can configure clock
-- [ ] Implement proper sleep aftr inactivity timeout
+- [x] Implement proper sleep aftr inactivity timeout
 - [ ] Implement proper book page switch, so there are limits
 ### Hardware
 - [ ] Add beter connectors SH 1.0 but horizontal, not vertical

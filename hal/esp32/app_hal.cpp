@@ -33,7 +33,8 @@
 
 #include "status/StatusManager.h"
 
-#define STATUS_FREQUENCY 10000
+#define STATUS_FREQUENCY_MILLS 10 * 1000
+#define SLEEP_TIMOUT_MILLS     30 * 1000
 
 // Function definitions
 void blink(void* pvParameters);
@@ -46,7 +47,6 @@ void switchIntent(uint8_t intentId, IntentArgument intentArgument);
 void create_black_square(lv_obj_t * parent);
 
 // Variable definitions
-
 esp_sleep_wakeup_cause_t wakeUpReason = ESP_SLEEP_WAKEUP_UNDEFINED;
 
 // Initialize Event Queue for MVC logc 
@@ -102,7 +102,7 @@ void hal_setup(void)
 
     // Status manager
     statusManager = new StatusManager(eventQueue, rtc, powerStatus);
-    IntentArgument statusManagerArg(STATUS_FREQUENCY);
+    IntentArgument statusManagerArg(STATUS_FREQUENCY_MILLS);
     statusManager->onStartUp(statusManagerArg);
 
     // Build and start intent
@@ -138,13 +138,24 @@ void blink(void *pvParameters) {
 void taskIntentFreq(void *pvParameters)
 {
     QueueHandle_t queue = static_cast<QueueHandle_t>(pvParameters);
-    uint8_t one = 1;
+    uint8_t frequencyArg = 0;
 
     for(;;) {
-        if (xQueueSend(queue, &one, pdMS_TO_TICKS(10)) != pdPASS)
+
+        unsigned long timeSinceLastInteraction = millis() - lv_joystick_last_hit();
+        ESP_LOGD(TAG_MAIN, "Mills since last interaction: %i", timeSinceLastInteraction);
+
+        // Once timeout is reached, frequency arg stays UINT8_MAX and never reset; 
+        // This is done on purpose, so user input does not interrup sleep seq
+        if (timeSinceLastInteraction > SLEEP_TIMOUT_MILLS) {
+            frequencyArg = UINT8_MAX;
+        }
+        
+        if (xQueueSend(queue, &frequencyArg, pdMS_TO_TICKS(10)) != pdPASS)
         {
             ESP_LOGV(TAG_MAIN, "Failed to send event to frequency queue");
         }
+
 		vTaskDelay(1000 / portTICK_RATE_MS);
 	}
 }
@@ -153,6 +164,7 @@ void eventQueueTask(void *pvParameters)
 {
     // Get queues
     void **queues = (void **)pvParameters;
+    bool sleepInitiatedByTimeout = false;
 
     QueueHandle_t eventQueue = (QueueHandle_t)queues[0];
     QueueHandle_t freqencyQueue = (QueueHandle_t)queues[1];
@@ -170,7 +182,20 @@ void eventQueueTask(void *pvParameters)
 
         // Wait to get item from frequency producer
         if (xQueueReceive(freqencyQueue, &frequencyArgment, pdMS_TO_TICKS(5)) == pdPASS) {
-            ESP_LOGV(TAG_MAIN, "Executing inetent frequency task");
+            ESP_LOGV(TAG_MAIN, "Executing inetent frequency task with value: %i", frequencyArgment);
+
+            if (frequencyArgment == UINT8_MAX && !sleepInitiatedByTimeout)
+            {    
+                ESP_LOGD(TAG_MAIN, "Initiating sleep sequence caused by inactivity timeout");
+
+                // Initiate sleep sequence
+                // TODO: Status manager flickering because lv_epd_mark_full(); clears display buffers fix
+                lv_epd_mark_full();
+                switchIntent(INTENT_ID_SLEEP, IntentArgument::NO_ARG);
+
+                // Assure single execution
+                sleepInitiatedByTimeout = true;
+            }
 
             // Account for intent init
             statusManager->onFrequncy();
