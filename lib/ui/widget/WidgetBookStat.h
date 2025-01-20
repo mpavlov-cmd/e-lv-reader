@@ -78,7 +78,17 @@ class WidgetBookStat : public AbstractWidget<ModelBookStat>
              // Calculate tick position based on the current page
             uint16_t tickWidth  = 2; 
             uint16_t tickHeight = 8;
-            uint16_t tickPositionX = (widgetData.currentPage * barWidth) / widgetData.totalPages;
+
+            // Avoid division by 0
+            uint16_t tickPositionX;
+            if (widgetData.totalPages <= 1)
+            {
+                tickPositionX = 0; 
+            }
+            else
+            {
+                tickPositionX = ((widgetData.currentPage - 1) * barWidth) / (widgetData.totalPages - 1);
+            }
             uint16_t tickPositionY = (box.height - box.padding * 2 - box.border * 2) / 2 - tickHeight / 2;
 
             lv_obj_set_size(tick, tickWidth, tickHeight);

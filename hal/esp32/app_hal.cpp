@@ -34,7 +34,7 @@
 #include "status/StatusManager.h"
 
 #define STATUS_FREQUENCY_MILLS 10 * 1000
-#define SLEEP_TIMOUT_MILLS     30 * 1000
+#define SLEEP_TIMOUT_MILLS     5 * 60 * 1000
 
 // Function definitions
 void blink(void* pvParameters);

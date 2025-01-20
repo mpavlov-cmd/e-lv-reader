@@ -31,7 +31,7 @@ void epd_set_px_cb_new(struct _lv_disp_drv_t * disp_drv, uint8_t * buf, lv_coord
 
 void tick_timer_callback(void *arg);
 
-#define MY_DISP_MAX_BUFFERS 30
+#define MY_DISP_MAX_BUFFERS 35
 
 #ifndef MY_DISP_HOR_RES
 #define MY_DISP_HOR_RES 480
@@ -50,7 +50,6 @@ static lv_color_t buf_1[MY_DISP_HOR_RES * 32];
 static lv_disp_drv_t disp_drv; 
 static lv_disp_t* disp;   
 
-// TODO: Figure out why moving this counter causes MCU boot failure
 uint16_t chunkCounter = 0;
 bool forceDispRefresh = false;
 

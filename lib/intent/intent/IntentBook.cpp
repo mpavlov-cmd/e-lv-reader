@@ -59,7 +59,7 @@ void IntentBook::bookLoadingTask()
     fileManager.readFileToBuffer(pagePacthC, bookPage, PAGE_BUFFER_SIZE);
 
     // Set values for bookStat;
-    modelBookStat->currentPage = dirCacheModel.curFileIdx;
+    modelBookStat->currentPage = dirCacheModel.curFileIdx + 1;
     modelBookStat->totalPages  = dirCacheModel.totalFiles;
 
     ESP_LOGV(TAG_INTNT, "Page: %s", bookPage);
@@ -67,6 +67,26 @@ void IntentBook::bookLoadingTask()
     // Mark page as ready
     pageReady = true;
     vTaskDelete(NULL);
+}
+
+uint16_t IntentBook::newPageIndex(uint16_t currentPageIndex, uint16_t maxPages, bool increment)
+{
+    if (maxPages == 0)
+    {
+        // If there are no pages, return 0 as a default.
+        return 0;
+    }
+
+    if (increment)
+    {
+        // Increment and wrap around if necessary.
+        return (currentPageIndex + 1) % maxPages;
+    }
+    else
+    {
+        // Decrement and wrap around if necessary.
+        return (currentPageIndex == 0) ? (maxPages - 1) : (currentPageIndex - 1);
+    }
 }
 
 // void IntentBook::bookDiaplayTask()
@@ -224,7 +244,6 @@ ActionResult IntentBook::onAction(ActionArgument arg)
     uint32_t key = lv_indev_get_key(lv_get_keypad());
     ESP_LOGD(TAG_INTNT, "Last key input: %i",  key);
 
-    // TODO: Temp return home on click, todo: add menu;
     if (arg.code == LV_EVENT_CLICKED)
 	{
         return {ActionRetultType::CHANGE_INTENT, INTENT_ID_HOME, IntentArgument::NO_ARG};
@@ -246,35 +265,28 @@ ActionResult IntentBook::onAction(ActionArgument arg)
             ESP_LOGE(TAG_INTNT, "Error opening page");
         }
 
-        // TODO: Hande max and min page nums 
-        uint16_t pageNum = cacheModel.curFileIdx;
-        pageNum++;
+        bool increment = key == LV_KEY_NEXT;
+        uint16_t nextPageIndex = newPageIndex(cacheModel.curFileIdx, cacheModel.totalFiles, increment);
 
-        String pagePath = String(getParentDir(cacheModel.filePath)) + "/._" + String(pageNum) + ".page.txt";
+        String pagePath = String(getParentDir(cacheModel.filePath)) + "/._" + String(nextPageIndex) + ".page.txt";
         const char* pagePathC = pagePath.c_str();
-        ESP_LOGV(TAG_INTNT, "Next page path: %s", pagePathC);
+        ESP_LOGD(TAG_INTNT, "Next page path: %s", pagePathC);
 
         // TODO: Resut ignored
         fileManager.readFileToBuffer(pagePathC, bookPage, PAGE_BUFFER_SIZE);
 
-        modelText->text = bookPage;
-        modelBookStat->currentPage = pageNum;
-
         // Save last opened page
-        cacheModel.curFileIdx = pageNum;
+        cacheModel.curFileIdx = nextPageIndex;
         strlcpy(cacheModel.filePath, pagePathC, sizeof(cacheModel.filePath));
         bool writeResult = directoryCache.write(bookIndexPath, cacheModel);
 
         // Print values
         ESP_LOGD(TAG_INTNT, "Printing page...");
 
-        // TODO: Add public clear method to the widget to avoid need for deletion
-        // delete widgetText;
-        // widgetText = new WidgetText(widgetGroup, eventQueue);
-        widgetText->upgrade(*modelText);
+        modelText->text = bookPage;
+        modelBookStat->currentPage = nextPageIndex + 1;
 
-        // delete widgetBookStat;
-        // widgetBookStat = new WidgetBookStat(widgetGroup, eventQueue);
+        widgetText->upgrade(*modelText);
         widgetBookStat->upgrade(*modelBookStat);
     }
 

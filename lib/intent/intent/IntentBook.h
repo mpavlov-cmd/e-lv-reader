@@ -45,6 +45,7 @@ private:
     TaskHandle_t bookLoadingHandle = NULL;
 
     void bookLoadingTask();
+    uint16_t newPageIndex(uint16_t currentPageIndex, uint16_t maxPages, bool increment);
 
     // Static wrappers function for xTaskCreate
     static void bookLoadingEntry(void *param) {
