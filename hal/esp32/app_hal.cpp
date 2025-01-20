@@ -143,7 +143,7 @@ void taskIntentFreq(void *pvParameters)
     for(;;) {
 
         unsigned long timeSinceLastInteraction = millis() - lv_joystick_last_hit();
-        ESP_LOGD(TAG_MAIN, "Mills since last interaction: %i", timeSinceLastInteraction);
+        ESP_LOGV(TAG_MAIN, "Mills since last interaction: %i", timeSinceLastInteraction);
 
         // Once timeout is reached, frequency arg stays UINT8_MAX and never reset; 
         // This is done on purpose, so user input does not interrup sleep seq
@@ -189,9 +189,8 @@ void eventQueueTask(void *pvParameters)
                 ESP_LOGD(TAG_MAIN, "Initiating sleep sequence caused by inactivity timeout");
 
                 // Initiate sleep sequence
-                // TODO: Status manager flickering because lv_epd_mark_full(); clears display buffers fix
-                lv_epd_mark_full();
                 switchIntent(INTENT_ID_SLEEP, IntentArgument::NO_ARG);
+                statusManager->onAction(ActionArgument::NULL_ARG); // Invalidates status manager
 
                 // Assure single execution
                 sleepInitiatedByTimeout = true;
@@ -210,11 +209,9 @@ void eventQueueTask(void *pvParameters)
 
             if (result.type == ActionRetultType::CHANGE_INTENT) {
                 ESP_LOGD(TAG_MAIN, "Change intent action fired with id: %i", result.id);
-                // Force full refresh on change intent
-                lv_epd_mark_full();
+
                 switchIntent(result.id, result.data);
-                // Refresh status manager
-                statusManager->onAction(actionArgument);
+                statusManager->onAction(ActionArgument::NULL_ARG);
 		    }
         }
 
@@ -254,6 +251,9 @@ void switchIntent(uint8_t intentId, IntentArgument intentArgument)
 
 	// Init new intent based on the id under the hood will assign new intent to intent current
 	buildIntent(intentId);
+
+    // Trigger full screen refresh and start new intent
+    lv_epd_mark_full(); 
 	intentCurrent->onStartUp(intentArgument);
 }
 
