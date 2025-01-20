@@ -79,9 +79,9 @@ class WidgetBookStat : public AbstractWidget<ModelBookStat>
             uint16_t tickWidth  = 2; 
             uint16_t tickHeight = 8;
 
-            // Avoid division by 0
+            // Avoid division by 0 and 0 as current page
             uint16_t tickPositionX;
-            if (widgetData.totalPages <= 1)
+            if (widgetData.totalPages <= 1 || widgetData.currentPage == 0)
             {
                 tickPositionX = 0; 
             }

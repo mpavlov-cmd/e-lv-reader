@@ -57,7 +57,7 @@ void testRendersOneLineOfText_void(void) {
     // ------------------------
 
     // Given
-    model.currentPage = 0;
+    model.currentPage = 1;
     bookStat = new WidgetBookStat(widgetGroup, eventQueue);
 
     // When
