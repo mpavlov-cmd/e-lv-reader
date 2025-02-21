@@ -22,6 +22,7 @@ protected:
     // lvgl parent object and style
     lv_obj_t* parent;
     lv_style_t style;
+    lv_style_t styleScrollBar;
 
     // Common event handler
     static void eventHandler(lv_event_t *event)
@@ -75,6 +76,7 @@ public:
             lv_obj_del(parent);
         }
         lv_style_reset(&style);
+        lv_style_reset(&styleScrollBar);
         ESP_LOGD(TAG_WIDGT, "Abstract widget destructor end");
     }
 
@@ -98,9 +100,14 @@ public:
             lv_style_set_border_width(&style, box.border);
             lv_style_set_border_color(&style, lv_color_black());
             lv_style_set_border_opa(&style, LV_OPA_COVER);
-            lv_style_set_pad_all(&style, box.padding);    
+            lv_style_set_pad_all(&style, box.padding);
+
+            lv_style_init(&styleScrollBar);
+            lv_style_set_bg_color(&styleScrollBar, lv_color_black());
+            lv_style_set_bg_opa(&styleScrollBar, LV_OPA_COVER);
 
             lv_obj_add_style(parent, &style, LV_PART_MAIN);
+            lv_obj_add_style(parent, &styleScrollBar, LV_PART_SCROLLBAR);
 
             initialize(widgetData);
             initialized = true;

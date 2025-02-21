@@ -22,7 +22,7 @@ struct IntentHome : public AbstractIntent
         ESP32Time& espTime;
         FileManager& fileManager;
 
-        DBox boxMenu {48, 432, 384, 256, 12, 5};
+        DBox boxMenu {48, 432, 384, 264, 12, 5};
         DBox boxClock = DBox::atCenter(256, 128, 8, 0);
 
         lv_obj_t* menuParent = nullptr;

@@ -51,6 +51,9 @@ class WidgetStatus : public AbstractWidget<ModelStatus>
         }
 
         void initialize(ModelStatus& widgetData) override {
+            // Hide Scrollbar 
+            lv_style_set_bg_color(&styleScrollBar, lv_color_white());
+
             // Set font to parent
             lv_style_set_text_font(&style, widgetData.lvFont);
             
