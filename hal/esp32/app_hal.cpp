@@ -116,6 +116,7 @@ void hal_setup(void)
     xTaskCreate(taskIntentFreq, "intentFreq", 2048, freqencyQueue, 1, &intentFreqHandle);
 
     // create_black_square(lv_scr_act());
+    // lv_timer_handler(); 
 }
 
 void hal_loop(void)
@@ -277,6 +278,8 @@ void create_black_square(lv_obj_t * parent) {
 
     // Apply the style to the rectangle
     lv_obj_add_style(rect, &style_black, 0);
+
+    // lv_obj_set_style_radius(rect, 0, LV_PART_MAIN);
 }
 
 #endif
