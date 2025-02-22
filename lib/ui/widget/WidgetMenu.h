@@ -79,7 +79,7 @@ private:
             
             lv_obj_set_user_data(btn, currentItem);
             lv_group_add_obj(widgetGroup, btn);
-            attachEventHandler(btn);
+            attachEventHandler(btn, LV_EVENT_CLICKED);
 
             // Use For LV_COLOR_DEPTH 1
             lv_obj_add_style(btn, &styleListButtonFocused, LV_STATE_FOCUS_KEY);

@@ -290,8 +290,8 @@ class WidgetClockConf : public AbstractWidget<ModelClock>
             lv_obj_set_user_data(buttonClose, actionClose);
             lv_obj_set_user_data(buttonSave, actionSave);
 
-            attachEventHandler(buttonClose);
-            attachEventHandler(buttonSave);
+            attachEventHandler(buttonClose, LV_EVENT_CLICKED);
+            attachEventHandler(buttonSave, LV_EVENT_CLICKED);
 
             // Focus initial drop-down
             lv_group_focus_obj(dropDownHours);

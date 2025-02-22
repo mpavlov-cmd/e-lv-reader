@@ -44,12 +44,9 @@ protected:
     }
 
     // Method to attach the event handler to an object
-    void attachEventHandler(lv_obj_t *obj)
+    void attachEventHandler(lv_obj_t *obj, lv_event_code_t eventCode)
     {
-        // Add more events here if neded
-        lv_obj_add_event_cb(obj, eventHandler, LV_EVENT_CLICKED, this);
-        lv_obj_add_event_cb(obj, eventHandler, LV_EVENT_FOCUSED, this);
-        lv_obj_add_event_cb(obj, eventHandler, LV_EVENT_KEY, this);
+        lv_obj_add_event_cb(obj, eventHandler, eventCode, this);
     }
 
 private:

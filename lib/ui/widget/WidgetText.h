@@ -40,15 +40,19 @@ class WidgetText : public AbstractWidget<ModelText>
             if (widgetData.hasAction)
             {
                 // Add to group and attach event handler
-                lv_group_add_obj(widgetGroup, label);
-                attachEventHandler(label);
-
-                // Dummy objet to handle nav
                 dummy = lv_label_create(parent);
                 lv_label_set_text(dummy, "");
-                // lv_obj_add_flag(dummy, LV_OBJ_FLAG_HIDDEN);
+
+                lv_group_add_obj(widgetGroup, label);
                 lv_group_add_obj(widgetGroup, dummy);
-                attachEventHandler(dummy);
+
+                attachEventHandler(label, LV_EVENT_KEY);
+                attachEventHandler(label, LV_EVENT_CLICKED);
+                attachEventHandler(label, LV_EVENT_FOCUSED);
+
+                attachEventHandler(dummy, LV_EVENT_KEY);
+                attachEventHandler(dummy, LV_EVENT_CLICKED);
+                attachEventHandler(dummy, LV_EVENT_FOCUSED);
             }
         }
 
