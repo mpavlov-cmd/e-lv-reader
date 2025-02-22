@@ -63,7 +63,7 @@ ActionResult IntentHome::onAction(ActionArgument arg)
 {
 	// ESP_LOGD(TAG_INTNT, "IntentHome::onAction EVENT  %i", arg.code);
 	// Ony handle click events
-	if (arg.code == LV_EVENT_CLICKED)
+	if (arg.code == LV_EVENT_PRESSED)
 	{
 		MenuItem* clicked = static_cast<MenuItem*>(lv_obj_get_user_data(arg.target));
 		ESP_LOGD(TAG_INTNT, "Got user data from event. ID: %i, Name: %s", clicked->getId(), clicked->getName());
