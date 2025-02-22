@@ -244,7 +244,7 @@ ActionResult IntentBook::onAction(ActionArgument arg)
     uint32_t key = lv_indev_get_key(lv_get_keypad());
     ESP_LOGD(TAG_INTNT, "Last key input: %i",  key);
 
-    if (arg.code == LV_EVENT_CLICKED)
+    if (arg.code == LV_EVENT_PRESSED)
 	{
         return {ActionRetultType::CHANGE_INTENT, INTENT_ID_HOME, IntentArgument::NO_ARG};
     }

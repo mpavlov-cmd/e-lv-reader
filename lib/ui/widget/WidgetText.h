@@ -47,11 +47,11 @@ class WidgetText : public AbstractWidget<ModelText>
                 lv_group_add_obj(widgetGroup, dummy);
 
                 attachEventHandler(label, LV_EVENT_KEY);
-                attachEventHandler(label, LV_EVENT_CLICKED);
+                attachEventHandler(label, LV_EVENT_PRESSED);
                 attachEventHandler(label, LV_EVENT_FOCUSED);
 
                 attachEventHandler(dummy, LV_EVENT_KEY);
-                attachEventHandler(dummy, LV_EVENT_CLICKED);
+                attachEventHandler(dummy, LV_EVENT_PRESSED);
                 attachEventHandler(dummy, LV_EVENT_FOCUSED);
             }
         }
