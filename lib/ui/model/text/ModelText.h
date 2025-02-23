@@ -12,9 +12,11 @@ struct ModelText {
     const lv_font_t* font;
     lv_align_t align;
     bool hasAction;
+    bool scrollable;
 
     static ModelText* newPtr() {
-        return new ModelText {DBox::EMPTY, "Text", &lv_font_montserrat_14, LV_ALIGN_TOP_LEFT, false};
+        return new ModelText {DBox::EMPTY, "Text", &lv_font_montserrat_14,
+             LV_ALIGN_TOP_LEFT, false, false};
     }
 };
 

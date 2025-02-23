@@ -25,7 +25,7 @@ private:
     lv_obj_t* menuParent = nullptr;
     WidgetMenu* widgetMenu = nullptr;
 
-    DBox menuBox{24, 48, 432, 352, 12, 5};
+    DBox menuBox{24, 48, 432, 352, 8, 1};
     Menu* menu = nullptr;
 
     void prepareAndRnderDir(const char* path);

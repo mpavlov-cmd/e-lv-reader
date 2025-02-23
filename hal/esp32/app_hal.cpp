@@ -91,6 +91,10 @@ void hal_setup(void)
     lv_joystick_indev_init();
     lv_arduino_fs_init();
 
+    // Set mono theme
+    lv_theme_t * th = lv_theme_mono_init(0, NULL, &lv_font_montserrat_14);
+    lv_disp_set_theme(lv_obj_get_disp(lv_scr_act()), th);
+
     // Set time on initial startup
     if (wakeUpReason == ESP_SLEEP_WAKEUP_UNDEFINED) {
         rtc.setTime(30, 15, 18, 27, 2, 2025, 0);

@@ -32,6 +32,10 @@ class WidgetText : public AbstractWidget<ModelText>
         }
 
         void initialize(ModelText& widgetData) override {
+            
+            if (!widgetData.scrollable) {
+                lv_obj_set_scrollbar_mode(parent, LV_SCROLLBAR_MODE_OFF);
+            }
 
             label = lv_label_create(parent);
             lv_style_set_text_font(&style, widgetData.font);
