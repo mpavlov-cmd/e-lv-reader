@@ -22,15 +22,15 @@ Project comes with ABSOLUTELY NO WARRANTY. Author is not responsible for any dam
 - 30th/15th vias for lowering PCB manufaturing cost.
 
 > [!WARNING]
-> Currently PCB is using external DESPI-C02 driver board for interfacing with EPD.
-> This will potentially be changed in the further imppementations as external driver board does not allow to make thin housing design.
+> Currently the project is using external DESPI-C02 driver board for interfacing with EPD.
+> This will potentially be changed in the further implementations as external driver board does not allow to make thin housing design.
 
 ### Part List
 Coming soon
 
 ### Software
 - PlatformIO, Arduino Framework.
-- LVGL driver for GDEQ0426T82 display with partial refresh 2 buffers and partial rendering support.
+- LVGL driver for GDEQ0426T82 display with partial refresh, 2 buffers and partial rendering support.
 - MVC framework featuring abstract Intent and Widget concepts.
 
 ## Pictures
