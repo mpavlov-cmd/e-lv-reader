@@ -1,4 +1,7 @@
 # ESP32 E-Reader Project 
+Opensource ESP-32 EPaper Display Device
+![TitleImage](https://raw.githubusercontent.com/mpavlov-cmd/e-lv-reader/refs/heads/main/img/Title.jpg)
+![PCB](https://raw.githubusercontent.com/mpavlov-cmd/e-lv-reader/refs/heads/main/img/PCB.jpg)
 
 ## GxEPD Driver for Reference
 - GxEPD2_426_GDEQ0426T82.h
@@ -29,22 +32,12 @@ To convert image use:
 
 ## TODO List
 ### Software
-- [x] Intent concept: implement action handling and intent swith with LVGL
-- [x] Implement StatusManager bakend so actual time, battery etc. are shown
-- [x] Implement beautiful clock widget for home page and sleep
-- [x] Implement sleep on timer and timer wakeup, so device can update clock and go back to sleep in case of timer wakeup
-- [x] Implement config intent, so I can configure clock
-- [x] Implement proper sleep aftr inactivity timeout
-- [x] Implement proper book page switch, so there are limits
+- [ ] Adjust MODIFY README.MD further
 ### Hardware
-- [x] FIX footprint for crystal
-- [x] FIX footprint for joystick (rotate 45 degrees, move to back pannel)
-- [x] Move JTAG pin down where josytick was
-- [x] Add beter connectors SH 1.0 but horizontal, not vertical
-- [x] Add backlight for the screen (Using one of the JTAG pins)
-- [x] Try to move LED from IO9 to one of the JTAG pins so either JTAG or led are working
-- [x] Verify PIN 23 (IO 15) as LED and PIN 14 (IO 12) as backlight; Verify JTAG still working; On breadboard
-- [ ] Configure diff pairs for USB
+- [ ] Implement diff pairs for USB
+- [ ] Move Battery Connector so it does not create an issue with housing
+- [ ] Integrate DESPI-C02 into PCB
+- [ ] Position ESP-32 chip so the antenna is placed properly
 
 
 ## WIKI
