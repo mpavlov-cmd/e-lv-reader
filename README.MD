@@ -43,7 +43,7 @@ To convert image use:
 - [x] Add beter connectors SH 1.0 but horizontal, not vertical
 - [x] Add backlight for the screen (Using one of the JTAG pins)
 - [x] Try to move LED from IO9 to one of the JTAG pins so either JTAG or led are working
-- [ ] Verify PIN 23 (IO 15) as LED and PIN 14 (IO 12) as backlight; Verify JTAG still working; On breadboard
+- [x] Verify PIN 23 (IO 15) as LED and PIN 14 (IO 12) as backlight; Verify JTAG still working; On breadboard
 - [ ] Configure diff pairs for USB
 
 
