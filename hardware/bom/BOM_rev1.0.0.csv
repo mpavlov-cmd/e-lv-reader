@@ -1,0 +1,40 @@
+Category,Quantity,References,Value,PCB Package
+Capacitors,1,C1,470pF,1206_CAP
+Capacitors,1,C2,2.2uF,1206_CAP
+Capacitors,2,C3-C4,4.7uF,1206_CAP
+Capacitors,4,"C5-C6,C9-C10",12pF,1206_CAP
+Capacitors,4,"C7,C13,C15,CJ1",0.1uF,1206_CAP
+Capacitors,1,C8,10nF,1206_CAP
+Capacitors,3,"C11-C12,C14",10uF,1206_CAP
+Resistors,2,R1-R2,33R,1206_RES
+Resistors,2,R3-R4,5.1K,1206_RES
+Resistors,2,"R5,R15",200R,1206_RES
+Resistors,14,"R6,R9-R11,R13-R14,R16,RB3,RJ1-RJ6",10K,1206_RES
+Resistors,2,"R7,R12",2.4K,1206_RES
+Resistors,1,R8,2.4k,1206_RES
+Resistors,4,R26-R29,100R,0805_RES
+Resistors,4,"RB1-RB2,RP2-RP3",1M,1206_RES
+Resistors,1,RP1,5K,1206_RES
+Resistor Charge Current,1,R_CH,4K,1206_RES
+Integrated Circuits,1,U1,ESP32WROOM32,ESP32WROOM32
+Integrated Circuits,1,U2,"MIC5219-3,3YM5",SOT-23-5
+Integrated Circuits,1,U3,MCP73831T2ACIOT,SOT-23-5
+Integrated Circuits,1,U4,CH340G,SO16
+Integrated Circuits,1,U5,74HC148,SO16
+Transistors,1,Q1,SI2301,SOT23
+Transistors,2,"Q2,Q6",SI2302DS,SOT23
+Transistors,3,Q3-Q5,MMBT2222A,SOT23
+Diodes,2,D1-D2,1N4007,SOD-123
+Diodes,1,D3,LED-RED,SOD-123
+Connectors,1,J1,Molex 217179-0001,MOLEX 217179-0001
+Connectors,1,J2,JST SH 1.0,SH 1.0 8P
+Connectors,1,J3,JST SH 1.0,SH 1.0 5P
+Connectors,1,J4,DM3ATSFPEJM5,HRS_DM3ATSFPEJM5
+Connectors,1,J5,JST SH 1.0,SH 1.0 2P
+Connectors,1,JTAG,JST SH 1.0,SH 1.0 5P
+Miscellaneous,1,B1,3.7V,SH 1.0 2P
+Miscellaneous,2,"BOOT,RST",SW-SPST-MOM,SMD SWITCH 3X4
+Miscellaneous,1,SW1,MSK12C02,MSK12C02
+Miscellaneous,1,SW2,SKRHABE010,SKRHABE010
+Miscellaneous,1,X1,CRYSTAL,CRYSTAL FC135
+Miscellaneous,1,X2,CRYSTAL,CRYSTAL 3225
