@@ -25,8 +25,8 @@ Project comes with ABSOLUTELY NO WARRANTY. Author is not responsible for any dam
 > Currently the project is using external DESPI-C02 driver board for interfacing with EPD.
 > This will potentially be changed in the further implementations as external driver board does not allow to make thin housing design.
 
-### Part List
-Coming soon
+### Bill Of Materials
+[BOM CSV](https://github.com/mpavlov-cmd/e-lv-reader/blob/main/hardware/bom/BOM_rev1.0.0.csv)
 
 ### Software
 - PlatformIO, Arduino Framework.
